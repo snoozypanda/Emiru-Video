@@ -25,6 +25,9 @@ const PendingPage = () => {
         onAdd={() => { setEditClient(null); setModalOpen(true); }}
         onEdit={(c) => { setEditClient(c); setModalOpen(true); }}
         onDelete={(c) => { if (window.confirm(`Delete ${c.full_name}?`)) setClients(clients.filter(x => x.id !== c.id)); }}
+        onStatusChange={(client, status) => {
+          setClients(clients.map((c) => (c.id === client.id ? { ...c, status } : c)));
+        }}
       />
       <AddClientModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSave={handleSave} editClient={editClient} />
     </AppLayout>

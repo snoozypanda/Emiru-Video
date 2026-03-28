@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, SlidersHorizontal, Plus, Pencil, Trash2, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { Client } from "@/lib/types";
 
@@ -7,17 +7,36 @@ interface ClientTableProps {
   onAdd: () => void;
   onEdit: (client: Client) => void;
   onDelete: (client: Client) => void;
+  onStatusChange?: (client: Client, status: Client["status"]) => void;
   showDateRange?: boolean;
   addButtonLabel?: string;
 }
 
 const ITEMS_PER_PAGE = 8;
 
-const ClientTable = ({ clients, onAdd, onEdit, onDelete, showDateRange = false, addButtonLabel = "Add Clients" }: ClientTableProps) => {
+const ClientTable = ({ clients, onAdd, onEdit, onDelete, onStatusChange, showDateRange = false, addButtonLabel = "Add Clients" }: ClientTableProps) => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"All" | "Active" | "Done">("All");
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [statusMenuClientId, setStatusMenuClientId] = useState<string | null>(null);
+  const [customMode, setCustomMode] = useState(() => localStorage.getItem("emiru-custom-mode") === "true");
+
+  useEffect(() => {
+    const handleCustomModeChange = (event: Event) => {
+      const customEvent = event as CustomEvent<boolean>;
+      setCustomMode(Boolean(customEvent.detail));
+    };
+
+    window.addEventListener("emiru-custom-mode-change", handleCustomModeChange as EventListener);
+    return () => window.removeEventListener("emiru-custom-mode-change", handleCustomModeChange as EventListener);
+  }, []);
+
+  useEffect(() => {
+    if (!customMode) {
+      setStatusMenuClientId(null);
+    }
+  }, [customMode]);
 
   const filtered = useMemo(() => {
     return clients.filter((c) => {
@@ -92,7 +111,7 @@ const ClientTable = ({ clients, onAdd, onEdit, onDelete, showDateRange = false, 
           <thead>
             <tr className="border-b border-border">
               <th className="w-12 px-4 py-3">
-                <input type="checkbox" className="w-4 h-4 rounded border-border" />
+                <input type="checkbox" aria-label="Select all clients" title="Select all clients" className="w-4 h-4 rounded border-border" />
               </th>
               <th className="text-left px-4 py-3 text-sm font-semibold text-foreground">
                 Company/ Name <ChevronDown size={12} className="inline ml-1" />
@@ -116,7 +135,7 @@ const ClientTable = ({ clients, onAdd, onEdit, onDelete, showDateRange = false, 
             {paginated.map((client) => (
               <tr key={client.id} className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors">
                 <td className="px-4 py-3.5">
-                  <input type="checkbox" className="w-4 h-4 rounded border-border" />
+                  <input type="checkbox" aria-label={`Select ${client.full_name}`} title={`Select ${client.full_name}`} className="w-4 h-4 rounded border-border" />
                 </td>
                 <td className="px-4 py-3.5 text-sm">{client.full_name}</td>
                 <td className="px-4 py-3.5 text-sm">{client.phone_number}</td>
@@ -129,19 +148,46 @@ const ClientTable = ({ clients, onAdd, onEdit, onDelete, showDateRange = false, 
                   {client.paid > 0 ? client.paid : "—"}
                 </td>
                 <td className="px-4 py-3.5">
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded border text-xs font-medium ${
-                    client.status === "Active"
-                      ? "border-border text-foreground"
-                      : "border-border text-foreground"
-                  }`}>
-                    {client.status === "Active" ? (
-                      <span className="w-2 h-2 rounded-full bg-green-500" />
-                    ) : (
-                      <span className="text-green-500">✓</span>
+                  <div className="relative inline-block">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!customMode) return;
+                        setStatusMenuClientId((prev) => (prev === client.id ? null : client.id));
+                      }}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded border text-xs font-medium transition-colors ${
+                        customMode ? "border-border text-foreground hover:bg-muted" : "border-border text-muted-foreground cursor-not-allowed"
+                      }`}
+                      title={customMode ? "Change status" : "Enable Custom Mode to change status"}
+                    >
+                      {client.status === "Active" ? (
+                        <span className="w-2 h-2 rounded-full bg-green-500" />
+                      ) : (
+                        <span className="text-green-500">✓</span>
+                      )}
+                      {client.status}
+                      <ChevronDown size={12} />
+                    </button>
+                    {customMode && statusMenuClientId === client.id && (
+                      <div className="absolute left-0 top-full mt-1 bg-card border border-border rounded-lg shadow-lg z-20 min-w-[120px]">
+                        {(["Active", "Done"] as const).map((nextStatus) => (
+                          <button
+                            key={nextStatus}
+                            type="button"
+                            onClick={() => {
+                              onStatusChange?.(client, nextStatus);
+                              setStatusMenuClientId(null);
+                            }}
+                            className={`block w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors ${
+                              client.status === nextStatus ? "font-bold" : ""
+                            }`}
+                          >
+                            {nextStatus}
+                          </button>
+                        ))}
+                      </div>
                     )}
-                    {client.status}
-                    <ChevronDown size={12} />
-                  </span>
+                  </div>
                 </td>
                 <td className="px-4 py-3.5">
                   <div className="flex items-center justify-end gap-2">
@@ -154,6 +200,8 @@ const ClientTable = ({ clients, onAdd, onEdit, onDelete, showDateRange = false, 
                     </button>
                     <button
                       onClick={() => onDelete(client)}
+                      title={`Delete ${client.full_name}`}
+                      aria-label={`Delete ${client.full_name}`}
                       className="p-1.5 bg-primary text-primary-foreground rounded-lg hover:opacity-80 transition-opacity"
                     >
                       <Trash2 size={14} />
@@ -179,6 +227,8 @@ const ClientTable = ({ clients, onAdd, onEdit, onDelete, showDateRange = false, 
           <button
             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
+            title="Previous page"
+            aria-label="Previous page"
             className="p-2 hover:bg-muted rounded-lg disabled:opacity-30 transition-colors"
           >
             <ChevronLeft size={16} />
@@ -201,6 +251,8 @@ const ClientTable = ({ clients, onAdd, onEdit, onDelete, showDateRange = false, 
           <button
             onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
+            title="Next page"
+            aria-label="Next page"
             className="p-2 hover:bg-muted rounded-lg disabled:opacity-30 transition-colors"
           >
             <ChevronRight size={16} />

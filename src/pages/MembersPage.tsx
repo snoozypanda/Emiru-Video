@@ -45,6 +45,9 @@ const MembersPage = () => {
         onAdd={handleAdd}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onStatusChange={(client, status) => {
+          setClients(clients.map((c) => (c.id === client.id ? { ...c, status } : c)));
+        }}
       />
       <AddClientModal
         isOpen={modalOpen}

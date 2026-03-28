@@ -21,6 +21,7 @@ const Sidebar = () => {
 
   useEffect(() => {
     localStorage.setItem("emiru-custom-mode", String(customMode));
+    window.dispatchEvent(new CustomEvent("emiru-custom-mode-change", { detail: customMode }));
   }, [customMode]);
 
   return (
@@ -59,8 +60,11 @@ const Sidebar = () => {
       {/* Custom Mode Toggle */}
       <div className="px-5 py-5 flex items-center gap-3 relative z-10">
         <span className="text-emiru-white text-sm font-medium">Custom Mode</span>
+        <span className="text-emiru-white/60 text-xs">{customMode ? "On" : "Off"}</span>
         <button
           onClick={() => setCustomMode(!customMode)}
+          title="Toggle custom mode"
+          aria-label="Toggle custom mode"
           className={`relative w-12 h-6 rounded-full transition-colors ${
             customMode ? "bg-emiru-red" : "bg-emiru-white/30"
           }`}

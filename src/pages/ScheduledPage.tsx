@@ -32,6 +32,9 @@ const ScheduledPage = () => {
         onAdd={() => { setEditClient(null); setModalOpen(true); }}
         onEdit={(c) => { setEditClient(c); setModalOpen(true); }}
         onDelete={(c) => { if (window.confirm(`Delete ${c.full_name}?`)) setClients(clients.filter(x => x.id !== c.id)); }}
+        onStatusChange={(client, status) => {
+          setClients(clients.map((c) => (c.id === client.id ? { ...c, status } : c)));
+        }}
         showDateRange
         addButtonLabel="Add Clients"
       />

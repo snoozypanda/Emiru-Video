@@ -10,6 +10,7 @@ import ProductPage from "./pages/ProductPage";
 import SettingsPage from "./pages/SettingsPage";
 import ReportPage from "./pages/ReportPage";
 import NotFound from "./pages/NotFound";
+import LoginPage from "./pages/LoginPage";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          <Route path="/login" element={<LoginPage />} />
           <Route path="/" element={<MembersPage />} />
           <Route path="/pending" element={<PendingPage />} />
           <Route path="/scheduled" element={<ScheduledPage />} />

@@ -1,9 +1,6 @@
-import logoWhite from "@/assets/emiru-logo-white.png";
-
 const TopNavbar = () => {
   return (
-    <header className="fixed top-0 left-[250px] right-0 h-16 bg-emiru-black flex items-center justify-between px-6 z-40">
-      <img src={logoWhite} alt="Emiru Video" className="h-8 object-contain" />
+    <header className="fixed top-0 left-[250px] right-0 h-16 bg-emiru-black flex items-center justify-end px-6 z-40">
       <div className="flex items-center gap-3">
         <div className="text-right">
           <p className="text-emiru-white/60 text-xs">Welcome</p>
