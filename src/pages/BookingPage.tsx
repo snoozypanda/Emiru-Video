@@ -4,17 +4,16 @@ import ClientTable from "@/components/ClientTable";
 import AddClientModal from "@/components/AddClientModal";
 import { Client, MOCK_CLIENTS } from "@/lib/types";
 
-// Pending page acts as the 'Return' view
-const returnClients: Client[] = MOCK_CLIENTS.slice(12, 20).map((c, i) => ({
+const bookingClients: Client[] = MOCK_CLIENTS.slice(0, 12).map((c, i) => ({
   ...c,
-  id: `return-${i}`,
-  type: "pending" as const, // Return uses pending type for now
+  id: `book-${i}`,
+  type: "scheduled" as const,
   date: "2/24/2026",
-  status: (i % 2 === 0 ? "Done" : "Active") as "Active" | "Done",
+  status: (i === 1 ? "Done" : "Active") as "Active" | "Done",
 }));
 
-const PendingPage = () => {
-  const [clients, setClients] = useState<Client[]>(returnClients);
+const BookingPage = () => {
+  const [clients, setClients] = useState<Client[]>(bookingClients);
   const [modalOpen, setModalOpen] = useState(false);
   const [editClient, setEditClient] = useState<Client | null>(null);
 
@@ -41,16 +40,17 @@ const PendingPage = () => {
         onStatusChange={(client, status) => {
           setClients(clients.map((c) => (c.id === client.id ? { ...c, status } : c)));
         }}
-        addButtonLabel="Return Item"
+        addButtonLabel="Add Clients"
       />
       <AddClientModal 
         isOpen={modalOpen} 
         onClose={() => setModalOpen(false)} 
         onSave={handleSave} 
         editClient={editClient} 
+        isScheduled 
       />
     </AppLayout>
   );
 };
 
-export default PendingPage;
+export default BookingPage;

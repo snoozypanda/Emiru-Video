@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { X, CloudUpload, Plus, Trash2 } from "lucide-react";
-import { Client, MOCK_PRODUCTS } from "@/lib/types";
+import { useState, useEffect, useMemo } from "react";
+import { X, Save, Printer, Camera, Zap, Waves, Component, Check, Calendar } from "lucide-react";
+import { Client, MOCK_PRODUCTS, Product } from "@/lib/types";
 
 interface AddClientModalProps {
   isOpen: boolean;
@@ -10,84 +10,85 @@ interface AddClientModalProps {
   isScheduled?: boolean;
 }
 
-interface ProductRow {
-  id: string;
-  product_name: string;
-  quantity: number;
-}
-
 const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = false }: AddClientModalProps) => {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
-  const [date, setDate] = useState(new Date().toLocaleDateString("en-US"));
-  const [dateEnd, setDateEnd] = useState("");
-  const [guarantorName, setGuarantorName] = useState("");
-  const [guarantorPhone, setGuarantorPhone] = useState("");
-  const [products, setProducts] = useState<ProductRow[]>([
-    { id: "1", product_name: "", quantity: 1 },
-  ]);
+  const [dateRange, setDateRange] = useState("1/27/2026 - 1/29/2026");
   const [paid, setPaid] = useState("");
-  const [note, setNote] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [remain, setRemain] = useState("");
+  const [selectedProducts, setSelectedProducts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (editClient) {
       setFullName(editClient.full_name);
       setPhone(editClient.phone_number);
-      setDate(editClient.date);
-      setDateEnd(editClient.date_end || "");
-      setGuarantorName(editClient.guarantor_name || "");
-      setGuarantorPhone(editClient.guarantor_phone || "");
-      setProducts(editClient.products.length > 0 ? editClient.products : [{ id: "1", product_name: "", quantity: 1 }]);
+      setDateRange(editClient.date_end ? `${editClient.date} - ${editClient.date_end}` : editClient.date);
       setPaid(String(editClient.paid || ""));
-      setNote(editClient.note || "");
+      setRemain(String(editClient.remain || ""));
+      
+      const initialSelected: Record<string, number> = {};
+      editClient.products.forEach(p => {
+        const product = MOCK_PRODUCTS.find(mp => mp.name === p.product_name);
+        if (product) initialSelected[product.id] = p.quantity;
+      });
+      setSelectedProducts(initialSelected);
     } else {
       setFullName("");
       setPhone("");
-      setDate(new Date().toLocaleDateString("en-US"));
-      setDateEnd("");
-      setGuarantorName("");
-      setGuarantorPhone("");
-      setProducts([{ id: "1", product_name: "", quantity: 1 }]);
+      setDateRange("1/27/2026 - 1/29/2026");
       setPaid("");
-      setNote("");
-      setFile(null);
+      setRemain("");
+      setSelectedProducts({});
     }
   }, [editClient, isOpen]);
 
-  const addProductRow = () => {
-    setProducts([...products, { id: String(Date.now()), product_name: "", quantity: 1 }]);
+  const toggleProduct = (id: string) => {
+    setSelectedProducts(prev => {
+      const next = { ...prev };
+      if (next[id]) {
+        delete next[id];
+      } else {
+        next[id] = 1;
+      }
+      return next;
+    });
   };
 
-  const removeProductRow = (id: string) => {
-    if (products.length > 1) {
-      setProducts(products.filter((p) => p.id !== id));
-    }
+  const updateQuantity = (id: string, qty: string) => {
+    const val = parseInt(qty) || 0;
+    setSelectedProducts(prev => ({ ...prev, [id]: val }));
   };
 
-  const updateProduct = (id: string, field: string, value: string | number) => {
-    setProducts(products.map((p) => (p.id === id ? { ...p, [field]: value } : p)));
+  const categories = ["Camera/ Lens", "Lighting", "Sound", "Gear"] as const;
+  const categoryIcons = {
+    "Camera/ Lens": <Camera size={20} />,
+    "Lighting": <Zap size={20} />,
+    "Sound": <Waves size={20} />,
+    "Gear": <Component size={20} />
   };
 
-  const totalValue = products.reduce((sum, p) => {
-    const product = MOCK_PRODUCTS.find((mp) => mp.name === p.product_name);
-    return sum + (product ? p.quantity * 500 : 0); // mock price
-  }, 0);
-
-  const remain = totalValue - (Number(paid) || 0);
+  const productsByCategory = useMemo(() => {
+    const grouped: Record<string, Product[]> = {};
+    categories.forEach(cat => {
+      grouped[cat] = MOCK_PRODUCTS.filter(p => p.category === cat).slice(0, 10); // Limit for UI mock consistency
+    });
+    return grouped;
+  }, []);
 
   const handleSave = () => {
+    const clientProducts = Object.entries(selectedProducts).map(([id, qty]) => {
+      const p = MOCK_PRODUCTS.find(mp => mp.id === id);
+      return { id, product_name: p?.name || "", quantity: qty };
+    });
+
     onSave({
       full_name: fullName,
       phone_number: phone,
-      date,
-      date_end: isScheduled ? dateEnd : undefined,
-      guarantor_name: guarantorName,
-      guarantor_phone: guarantorPhone,
-      products,
+      date: dateRange.split(" - ")[0],
+      date_end: dateRange.split(" - ")[1],
+      products: clientProducts,
       paid: Number(paid) || 0,
-      remain: Math.max(0, remain),
-      note,
+      remain: Number(remain) || 0,
       status: "Active",
       type: isScheduled ? "scheduled" : "member",
     });
@@ -97,200 +98,124 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-foreground/50 flex items-center justify-center z-[100]" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] backdrop-blur-sm" onClick={onClose}>
       <div
-        className="bg-card rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto mx-4"
+        className="bg-white rounded-[32px] shadow-2xl w-full max-w-[1100px] p-8 relative overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6 space-y-4">
-          {/* Full Name */}
-          <div>
-            <label className="block text-sm font-semibold mb-1.5">Full Name</label>
+        {/* Top Header Inputs */}
+        <div className="flex gap-4 mb-8">
+          <input
+            type="text"
+            placeholder="Name..."
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            className="flex-1 px-5 py-3 border border-gray-300 rounded-xl text-sm outline-none focus:border-emiru-black transition-colors"
+          />
+          <input
+            type="text"
+            placeholder="Phone...."
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="flex-1 px-5 py-3 border border-gray-300 rounded-xl text-sm outline-none focus:border-emiru-black transition-colors"
+          />
+          <div className="flex-1 relative">
             <input
               type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="w-full px-4 py-2.5 border border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-ring"
+              placeholder="1/27/2026 - 1/29/2026"
+              value={dateRange}
+              readOnly
+              className="w-full px-5 py-3 border border-gray-300 rounded-xl text-sm outline-none bg-white pr-10"
             />
+            <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           </div>
-
-          {/* Phone + Date */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold mb-1.5">Phone Number</label>
-              <input
-                type="text"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-4 py-2.5 border border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-ring"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-1.5">Date</label>
-              {isScheduled ? (
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    placeholder="Start date"
-                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-ring"
-                  />
-                  <input
-                    type="text"
-                    value={dateEnd}
-                    onChange={(e) => setDateEnd(e.target.value)}
-                    placeholder="End date"
-                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-ring"
-                  />
-                </div>
-              ) : (
-                <input
-                  type="text"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-ring"
-                />
-              )}
-            </div>
-          </div>
-
-          {/* Guarantor */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold mb-1.5">Guarantor Name</label>
-              <input
-                type="text"
-                value={guarantorName}
-                onChange={(e) => setGuarantorName(e.target.value)}
-                className="w-full px-4 py-2.5 border border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-ring"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-1.5">Guarantor Phone No_</label>
-              <input
-                type="text"
-                value={guarantorPhone}
-                onChange={(e) => setGuarantorPhone(e.target.value)}
-                className="w-full px-4 py-2.5 border border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-ring"
-              />
-            </div>
-          </div>
-
-          {/* Products */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-semibold">Product</label>
-              <button
-                onClick={addProductRow}
-                className="flex items-center gap-1 px-3 py-1 border border-border rounded-lg text-xs font-medium hover:bg-muted transition-colors"
-              >
-                <Plus size={12} />
-                Add
-              </button>
-            </div>
-            <div className="space-y-2">
-              {products.map((p) => (
-                <div key={p.id} className="flex gap-2 items-center">
-                  <select
-                    value={p.product_name}
-                    onChange={(e) => updateProduct(p.id, "product_name", e.target.value)}
-                    className="flex-1 px-4 py-2.5 border border-border rounded-lg text-sm outline-none bg-card appearance-none"
-                  >
-                    <option value="">Select product</option>
-                    {MOCK_PRODUCTS.map((mp) => (
-                      <option key={mp.id} value={mp.name}>{mp.name}</option>
-                    ))}
-                  </select>
-                  <select
-                    value={p.quantity}
-                    onChange={(e) => updateProduct(p.id, "quantity", Number(e.target.value))}
-                    className="w-20 px-3 py-2.5 border border-border rounded-lg text-sm outline-none bg-card appearance-none"
-                  >
-                    {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => (
-                      <option key={n} value={n}>{n}</option>
-                    ))}
-                  </select>
-                  {products.length > 1 && (
-                    <button onClick={() => removeProductRow(p.id)} className="p-1 text-muted-foreground hover:text-primary">
-                      <Trash2 size={14} />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Paid / Remain */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold mb-1.5">Paid</label>
-              <input
-                type="number"
-                value={paid}
-                onChange={(e) => setPaid(e.target.value)}
-                placeholder="5000.00"
-                className="w-full px-4 py-2.5 border border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-ring"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-1.5">Remain</label>
-              <input
-                type="text"
-                value={remain > 0 ? remain.toFixed(2) : "0.00"}
-                readOnly
-                className="w-full px-4 py-2.5 border border-border rounded-lg text-sm outline-none bg-muted"
-              />
-            </div>
-          </div>
-
-          {/* File Upload */}
-          <div
-            className="border-2 border-dashed border-border rounded-xl p-8 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors"
-            onClick={() => document.getElementById("file-upload")?.click()}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => {
-              e.preventDefault();
-              if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
-            }}
+          <button
+            onClick={handleSave}
+            className="bg-emiru-black text-white px-8 py-3 rounded-xl flex items-center gap-2 font-bold hover:bg-gray-800 transition-colors"
           >
-            <CloudUpload size={40} className="text-muted-foreground/50" />
-            <p className="text-sm text-muted-foreground italic">
-              {file ? file.name : "Drag your file here"}
-            </p>
-            <input
-              id="file-upload"
-              type="file"
-              className="hidden"
-              onChange={(e) => { if (e.target.files?.[0]) setFile(e.target.files[0]); }}
-            />
-          </div>
-
-          {/* Note */}
-          <div>
-            <label className="block text-sm font-semibold mb-1.5">Note</label>
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Hi."
-              rows={3}
-              className="w-full px-4 py-2.5 border border-border rounded-lg text-sm outline-none resize-none focus:ring-1 focus:ring-ring"
-            />
-          </div>
-
-          {/* Footer */}
-          <div className="border-t border-border pt-4 flex items-center justify-between">
-            <h3 className="text-lg font-bold">
-              {isScheduled ? "Scheduled Client" : editClient ? "Edit Client" : "Add Client"}
-            </h3>
-            <button
-              onClick={handleSave}
-              className="px-8 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
-            >
-              Save
-            </button>
-          </div>
+            <Save size={18} />
+            <span>Save</span>
+          </button>
         </div>
+
+        {/* 4-Column Inventory Selector */}
+        <div className="grid grid-cols-4 gap-4 mb-8">
+          {categories.map((cat) => (
+            <div key={cat} className="flex flex-col bg-gray-50 rounded-[24px] overflow-hidden border border-gray-100">
+              {/* Category Header */}
+              <div className="bg-emiru-black text-white px-4 py-3 flex items-center justify-between">
+                <span className="font-bold text-sm">{cat}</span>
+                {categoryIcons[cat]}
+              </div>
+              
+              {/* Product Rows */}
+              <div className="p-2 space-y-1.5 max-h-[400px] overflow-y-auto">
+                {productsByCategory[cat].map((product) => {
+                  const isSelected = !!selectedProducts[product.id];
+                  return (
+                    <div key={product.id} className="flex items-center gap-2 bg-white rounded-xl p-1.5 border border-gray-200">
+                      <button
+                        onClick={() => toggleProduct(product.id)}
+                        className={`w-6 h-6 rounded-md border flex items-center justify-center transition-colors ${
+                          isSelected ? "bg-emiru-black border-emiru-black text-white" : "border-gray-300 bg-white"
+                        }`}
+                      >
+                        {isSelected && <Check size={14} strokeWidth={4} />}
+                      </button>
+                      <span className="flex-1 text-[11px] font-bold text-gray-500 truncate">
+                        {product.name}
+                      </span>
+                      <input
+                        type="text"
+                        value={isSelected ? selectedProducts[product.id] : "-"}
+                        onChange={(e) => updateQuantity(product.id, e.target.value)}
+                        readOnly={!isSelected}
+                        className={`w-8 h-8 rounded-lg text-center text-xs font-bold outline-none border transition-colors ${
+                          isSelected ? "bg-gray-100 border-gray-300" : "bg-white border-transparent text-gray-300"
+                        }`}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer Inputs and Actions */}
+        <div className="flex items-center justify-between gap-6">
+          <div className="flex flex-1 gap-4">
+            <input
+              type="text"
+              placeholder="Paid ..."
+              value={paid}
+              onChange={(e) => setPaid(e.target.value)}
+              className="flex-1 px-5 py-3 border border-gray-300 rounded-xl text-sm outline-none"
+            />
+            <input
+              type="text"
+              placeholder="Remain"
+              value={remain}
+              onChange={(e) => setRemain(e.target.value)}
+              className="flex-1 px-5 py-3 border border-gray-300 rounded-xl text-sm outline-none"
+            />
+          </div>
+          <button
+            className="flex-1 bg-emiru-red text-white py-3 rounded-xl flex items-center justify-center gap-2 font-bold text-lg hover:bg-opacity-90 transition-opacity"
+            onClick={() => window.print()}
+          >
+            <Printer size={22} className="mr-2" />
+            Print
+          </button>
+        </div>
+
+        {/* Close Button (Floating Top Right) */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-emiru-black transition-colors"
+        >
+          <X size={24} />
+        </button>
       </div>
     </div>
   );

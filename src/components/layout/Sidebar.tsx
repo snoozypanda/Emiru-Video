@@ -1,28 +1,22 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Users, Clock, CalendarDays, Camera, Settings, FileText } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Users, User, CalendarDays, Camera, Settings, FileText, CheckSquare, RotateCcw, UserCog, History, LogOut } from "lucide-react";
 import logoWhite from "@/assets/emiru-logo-white.png";
 
 const navItems = [
-  { label: "Members", icon: Users, path: "/" },
-  { label: "Pending", icon: Clock, path: "/pending" },
+  { label: "Booking", icon: CheckSquare, path: "/booking" },
+  { label: "Return", icon: RotateCcw, path: "/return" },
   { label: "Scheduled", icon: CalendarDays, path: "/scheduled" },
   { label: "Product", icon: Camera, path: "/product" },
-  { label: "Setting", icon: Settings, path: "/settings" },
+  { label: "Members", icon: User, path: "/" },
+  { label: "Admin", icon: UserCog, path: "/admin" },
+  { label: "History", icon: History, path: "/history" },
   { label: "Report", icon: FileText, path: "/report" },
+  { label: "Setting", icon: Settings, path: "/settings" },
 ];
 
 const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [customMode, setCustomMode] = useState(() => {
-    return localStorage.getItem("emiru-custom-mode") === "true";
-  });
-
-  useEffect(() => {
-    localStorage.setItem("emiru-custom-mode", String(customMode));
-    window.dispatchEvent(new CustomEvent("emiru-custom-mode-change", { detail: customMode }));
-  }, [customMode]);
 
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-[250px] bg-emiru-black flex flex-col z-50 overflow-hidden">
@@ -53,27 +47,18 @@ const Sidebar = () => {
       </nav>
 
       {/* Logo watermark */}
-      <div className="absolute bottom-12 left-0 w-[200px] opacity-10 pointer-events-none">
-        <img src={logoWhite} alt="" className="w-full scale-[2.5] translate-x-[-20%] translate-y-[10%]" />
+      <div className="absolute bottom-12 left-0 w-[200px] opacity-[0.03] pointer-events-none overflow-hidden">
+        <h1 className="text-8xl font-heading font-bold text-white -rotate-6 transform -translate-x-[20%] translate-y-[20%]">Trident</h1>
       </div>
 
-      {/* Custom Mode Toggle */}
-      <div className="px-5 py-5 flex items-center gap-3 relative z-10">
-        <span className="text-emiru-white text-sm font-medium">Custom Mode</span>
-        <span className="text-emiru-white/60 text-xs">{customMode ? "On" : "Off"}</span>
+      {/* Logout Button */}
+      <div className="px-5 py-5 pb-8 relative z-10 w-full mt-auto">
         <button
-          onClick={() => setCustomMode(!customMode)}
-          title="Toggle custom mode"
-          aria-label="Toggle custom mode"
-          className={`relative w-12 h-6 rounded-full transition-colors ${
-            customMode ? "bg-emiru-red" : "bg-emiru-white/30"
-          }`}
+          onClick={() => {}}
+          className="w-full flex items-center justify-center gap-2 bg-white rounded-lg py-2.5 text-emiru-red font-medium transition-colors hover:bg-gray-100"
         >
-          <span
-            className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-emiru-white transition-transform ${
-              customMode ? "translate-x-6" : "translate-x-0"
-            }`}
-          />
+          <span>Logout</span>
+          <LogOut size={18} />
         </button>
       </div>
     </aside>

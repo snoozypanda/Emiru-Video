@@ -11,6 +11,9 @@ import SettingsPage from "./pages/SettingsPage";
 import ReportPage from "./pages/ReportPage";
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/LoginPage";
+import AdminPage from "./pages/AdminPage";
+import HistoryPage from "./pages/HistoryPage";
+import BookingPage from "./pages/BookingPage";
 
 const queryClient = new QueryClient();
 
@@ -23,9 +26,12 @@ const App = () => (
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/" element={<MembersPage />} />
-          <Route path="/pending" element={<PendingPage />} />
+          <Route path="/booking" element={<BookingPage />} />
+          <Route path="/return" element={<PendingPage />} />
           <Route path="/scheduled" element={<ScheduledPage />} />
           <Route path="/product" element={<ProductPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/history" element={<HistoryPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/report" element={<ReportPage />} />
           <Route path="*" element={<NotFound />} />
