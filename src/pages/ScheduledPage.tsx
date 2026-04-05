@@ -35,8 +35,10 @@ const ScheduledPage = () => {
         onStatusChange={(client, status) => {
           setClients(clients.map((c) => (c.id === client.id ? { ...c, status } : c)));
         }}
+        allowStatusChange
         showDateRange
         addButtonLabel="Add Clients"
+        dateHeaderLabel="Due Date"
       />
       <AddClientModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSave={handleSave} editClient={editClient} isScheduled />
     </AppLayout>

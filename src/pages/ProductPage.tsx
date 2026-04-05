@@ -1,13 +1,13 @@
 import { useState, useMemo } from "react";
 import AppLayout from "@/components/layout/AppLayout";
 import { MOCK_PRODUCTS, Product } from "@/lib/types";
-import { Calendar, Camera, Lightbulb, Volume2, Wrench } from "lucide-react";
+import { Calendar, Camera, Lightbulb, Volume2, Clapperboard } from "lucide-react";
 
 const categoryIcons: Record<string, typeof Camera> = {
   Camera: Camera,
   Lighting: Lightbulb,
   Sound: Volume2,
-  Gear: Wrench,
+  Gear: Clapperboard,
 };
 
 const ProductPage = () => {

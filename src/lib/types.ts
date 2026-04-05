@@ -118,12 +118,22 @@ export const MOCK_INVENTORY: InventoryItem[] = Array.from({ length: 24 }, (_, i)
   serialNumber: `CAM-${String(i + 1).padStart(2, "0")}`,
 }));
 
-export const MOCK_HISTORY: HistoryEntry[] = Array.from({ length: 24 }, (_, i) => ({
-  id: `hist-${i + 1}`,
-  type: (["return", "rent", "edit", "return", "rent", "add", "return", "delete"] as const)[i % 8],
-  description: "Item 'BLACK MAGIC' (SN: CAM-11) was returned by KALKIDAN GETACHEW. Cost $2500.00.",
-  timestamp: "1/27/2026 | 9:00AM",
-}));
+export const MOCK_HISTORY: HistoryEntry[] = [
+  { id: "hist-1", type: "return", description: "Item 'CANON MARK III' was returned by EYASU KEBEDE.", timestamp: "1/30/2026 | 10:30AM" },
+  { id: "hist-2", type: "rent", description: "Item 'DJI RS3' was rented to ABEBE BALCHA.", timestamp: "1/29/2026 | 2:15PM" },
+  { id: "hist-3", type: "add", description: "New item 'SONY A7IV' added to inventory.", timestamp: "1/28/2026 | 9:00AM" },
+  { id: "hist-4", type: "delete", description: "Item 'RODE NTG2' removed from inventory.", timestamp: "1/20/2026 | 4:45PM" },
+  { id: "hist-5", type: "edit", description: "Price updated for 'BLACKMAGIC 6K'.", timestamp: "1/15/2026 | 11:00AM" },
+  { id: "hist-6", type: "return", description: "Item 'RED KOMODO' returned by SAMUEL L.", timestamp: "1/5/2026 | 3:30PM" },
+  { id: "hist-7", type: "rent", description: "Item 'APUTURE 300D' rented to LILLY K.", timestamp: "12/28/2025 | 1:00PM" },
+  { id: "hist-8", type: "return", description: "Item 'ZHIYUN CRANE' returned.", timestamp: "12/15/2025 | 10:00AM" },
+  ...Array.from({ length: 16 }, (_, i) => ({
+    id: `hist-${i + 9}`,
+    type: (["return", "rent", "edit"] as const)[i % 3],
+    description: `Automated history log entry #${i + 9}`,
+    timestamp: "1/27/2026 | 9:00AM",
+  }))
+];
 
 const TIERS: MemberTier[] = ["Standard", "VIP", "Trusted", "Gold", "New", "Standard", "VIP", "Trusted", "Gold"];
 

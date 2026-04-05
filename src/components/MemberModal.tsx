@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { X, User, Phone, ShieldCheck } from "lucide-react";
+import { X, User, Phone, ShieldCheck, CloudUpload } from "lucide-react";
 import { Member, MemberTier } from "@/lib/types";
 
 interface MemberModalProps {
@@ -14,6 +14,7 @@ const MemberModal = ({ isOpen, onClose, onSave, editMember }: MemberModalProps) 
   const [phone, setPhone] = useState("");
   const [tier, setTier] = useState<MemberTier>("Standard");
   const [rentalStatus, setRentalStatus] = useState<"On Rent" | "Returned">("Returned");
+  const [note, setNote] = useState("");
 
   useEffect(() => {
     if (editMember) {
@@ -26,6 +27,7 @@ const MemberModal = ({ isOpen, onClose, onSave, editMember }: MemberModalProps) 
       setPhone("");
       setTier("Standard");
       setRentalStatus("Returned");
+      setNote("");
     }
   }, [editMember, isOpen]);
 
@@ -123,9 +125,25 @@ const MemberModal = ({ isOpen, onClose, onSave, editMember }: MemberModalProps) 
                   <option value="On Rent">On Rent</option>
                </select>
             </div>
+           </div>
+
+          <div className="relative group border-2 border-dashed border-gray-300 rounded-[28px] py-10 flex flex-col items-center justify-center gap-3 bg-white hover:bg-gray-50 transition-all cursor-pointer">
+             <CloudUpload size={54} className="text-gray-400" strokeWidth={2.5} />
+             <p className="text-xl font-medium text-gray-400">Drag your file here</p>
+             <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" title="Upload document" />
+          </div>
+          
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-bold text-gray-900 ml-1">Note</p>
+            <textarea
+              placeholder="Hi."
+              className="flex-1 rounded-[24px] border border-gray-200 bg-white p-5 text-sm font-medium text-gray-900 outline-none ring-2 ring-transparent focus:border-black/20 focus:ring-black/60 resize-none min-h-[120px]"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
           </div>
 
-          <div className="pt-4 flex gap-3">
+          <div className="pt-2 flex gap-3">
             <button
               type="button"
               onClick={onClose}

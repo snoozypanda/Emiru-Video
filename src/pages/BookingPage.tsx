@@ -45,6 +45,9 @@ const BookingPage = () => {
           setClients(clients.map((current) => (current.id === client.id ? { ...current, status } : current)));
         }}
         addButtonLabel="Add Clients"
+        allowStatusChange={true}
+        hideDelete={true}
+        dateHeaderLabel="Due Date"
       />
       <AddClientModal
         isOpen={modalOpen}

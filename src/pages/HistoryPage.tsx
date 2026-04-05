@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import AppLayout from "@/components/layout/AppLayout";
-import { Clock, SlidersHorizontal, ArrowUpCircle, ArrowDownCircle, Pencil, Trash2, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Clock, SlidersHorizontal, ArrowUpCircle, ArrowDownCircle, Pencil, Trash2, Plus, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { MOCK_HISTORY, HistoryEntry } from "@/lib/types";
 
 const ITEMS_PER_PAGE = 8;
@@ -15,9 +15,31 @@ const typeIcons: Record<HistoryEntry["type"], typeof ArrowUpCircle> = {
 
 const HistoryPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const entries = MOCK_HISTORY;
-  const totalPages = Math.max(1, Math.ceil(entries.length / ITEMS_PER_PAGE));
-  const paginated = entries.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  const [filterType, setFilterType] = useState<"All" | "Day" | "Week" | "Month">("All");
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+
+  // For mock filtering, we'll assume today is 1/30/2026
+  const MOCK_TODAY = new Date("2026-01-30T12:00:00");
+
+  const filteredEntries = useMemo(() => {
+    if (filterType === "All") return MOCK_HISTORY;
+
+    return MOCK_HISTORY.filter(entry => {
+      // timestamp format: "1/30/2026 | 10:30AM"
+      const datePart = entry.timestamp.split(" | ")[0];
+      const entryDate = new Date(datePart);
+      const diffTime = Math.abs(MOCK_TODAY.getTime() - entryDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (filterType === "Day") return diffDays <= 1;
+      if (filterType === "Week") return diffDays <= 7;
+      if (filterType === "Month") return diffDays <= 30;
+      return true;
+    });
+  }, [filterType]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredEntries.length / ITEMS_PER_PAGE));
+  const paginated = filteredEntries.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const pageNumbers = useMemo(() => {
     const pages: (number | string)[] = [];
@@ -40,10 +62,29 @@ const HistoryPage = () => {
               His<span className="text-primary">tory</span>
             </span>
           </h1>
-          <button className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg text-sm font-medium hover:bg-muted transition-colors">
-            <SlidersHorizontal size={16} />
-            Sort By
-          </button>
+          <div className="relative">
+            <button 
+              onClick={() => setShowSortDropdown(!showSortDropdown)}
+              className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg text-sm font-medium hover:bg-muted transition-colors"
+            >
+              <SlidersHorizontal size={16} />
+              {filterType === "All" ? "Sort By" : `Filter: ${filterType}`}
+              <ChevronDown size={14} className="ml-1 opacity-50" />
+            </button>
+            {showSortDropdown && (
+              <div className="absolute right-0 top-full mt-1 bg-card border border-border rounded-lg shadow-lg z-20 min-w-[140px]">
+                {(["All", "Day", "Week", "Month"] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => { setFilterType(t); setShowSortDropdown(false); setCurrentPage(1); }}
+                    className={`block w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors ${filterType === t ? "font-bold text-primary" : ""}`}
+                  >
+                    {t === "All" ? "Show All" : `By ${t}`}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* History List */}

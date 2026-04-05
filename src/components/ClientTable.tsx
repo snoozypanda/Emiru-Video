@@ -10,15 +10,20 @@ interface ClientTableProps {
   onStatusChange?: (client: Client, status: Client["status"]) => void;
   showDateRange?: boolean;
   addButtonLabel?: string;
+  hideDelete?: boolean;
+  allowStatusChange?: boolean;
+  dateHeaderLabel?: string;
 }
 
 const ITEMS_PER_PAGE = 8;
 
-const ClientTable = ({ clients, onAdd, onEdit, onDelete, onStatusChange, showDateRange = false, addButtonLabel = "Add Clients" }: ClientTableProps) => {
+const ClientTable = ({ clients, onAdd, onEdit, onDelete, onStatusChange, showDateRange = false, addButtonLabel = "Add Clients", hideDelete = false, allowStatusChange = false, dateHeaderLabel }: ClientTableProps) => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"All" | "Active" | "Done">("All");
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [sortBy, setBySort] = useState<"default" | "date">("default");
   const [statusMenuClientId, setStatusMenuClientId] = useState<string | null>(null);
   const [customMode, setCustomMode] = useState(() => localStorage.getItem("emiru-custom-mode") === "true");
 
@@ -33,19 +38,25 @@ const ClientTable = ({ clients, onAdd, onEdit, onDelete, onStatusChange, showDat
   }, []);
 
   useEffect(() => {
-    if (!customMode) {
+    if (!customMode && !allowStatusChange) {
       setStatusMenuClientId(null);
     }
-  }, [customMode]);
+  }, [customMode, allowStatusChange]);
 
   const filtered = useMemo(() => {
-    return clients.filter((c) => {
+    let result = clients.filter((c) => {
       const matchesSearch = c.full_name.toLowerCase().includes(search.toLowerCase()) ||
         c.phone_number.includes(search);
       const matchesStatus = statusFilter === "All" || c.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
-  }, [clients, search, statusFilter]);
+
+    if (sortBy === "date") {
+      result = [...result].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    }
+
+    return result;
+  }, [clients, search, statusFilter, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const paginated = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
@@ -96,10 +107,31 @@ const ClientTable = ({ clients, onAdd, onEdit, onDelete, onStatusChange, showDat
             </div>
           )}
         </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg text-sm font-medium hover:bg-muted transition-colors">
-          <SlidersHorizontal size={16} />
-          Sort By
-        </button>
+        <div className="relative">
+          <button 
+            onClick={() => setShowSortDropdown(!showSortDropdown)}
+            className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg text-sm font-medium hover:bg-muted transition-colors"
+          >
+            <SlidersHorizontal size={16} />
+            {sortBy === "default" ? "Sort By" : "Sorted by Day"}
+          </button>
+          {showSortDropdown && (
+            <div className="absolute right-0 top-full mt-1 bg-card border border-border rounded-lg shadow-lg z-20 min-w-[140px]">
+              <button
+                onClick={() => { setBySort("default"); setShowSortDropdown(false); }}
+                className={`block w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors ${sortBy === "default" ? "font-bold" : ""}`}
+              >
+                Default
+              </button>
+              <button
+                onClick={() => { setBySort("date"); setShowSortDropdown(false); }}
+                className={`block w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors ${sortBy === "date" ? "font-bold" : ""}`}
+              >
+                By Day
+              </button>
+            </div>
+          )}
+        </div>
         <button
           onClick={onAdd}
           className="flex items-center gap-1.5 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
@@ -124,7 +156,7 @@ const ClientTable = ({ clients, onAdd, onEdit, onDelete, onStatusChange, showDat
                 Phone No <ChevronDown size={12} className="inline ml-1" />
               </th>
               <th className="text-left px-4 py-3 text-sm font-semibold text-foreground">
-                Date <ChevronDown size={12} className="inline ml-1" />
+                {(sortBy === "date" && dateHeaderLabel) ? dateHeaderLabel : "Date"} <ChevronDown size={12} className="inline ml-1" />
               </th>
               <th className="text-left px-4 py-3 text-sm font-semibold text-foreground">
                 Paid/ Remain <ChevronDown size={12} className="inline ml-1" />
@@ -156,13 +188,13 @@ const ClientTable = ({ clients, onAdd, onEdit, onDelete, onStatusChange, showDat
                     <button
                       type="button"
                       onClick={() => {
-                        if (!customMode) return;
+                        if (!customMode && !allowStatusChange) return;
                         setStatusMenuClientId((prev) => (prev === client.id ? null : client.id));
                       }}
                       className={`inline-flex items-center gap-1.5 px-3 py-1 rounded border text-xs font-medium transition-colors ${
-                        customMode ? "border-border text-foreground hover:bg-muted" : "border-border text-muted-foreground cursor-not-allowed"
+                        customMode || allowStatusChange ? "border-border text-foreground hover:bg-muted" : "border-border text-muted-foreground cursor-not-allowed"
                       }`}
-                      title={customMode ? "Change status" : "Enable Custom Mode to change status"}
+                      title={customMode || allowStatusChange ? "Change status" : "Enable Custom Mode to change status"}
                     >
                       {client.status === "Active" ? (
                         <span className="w-2 h-2 rounded-full bg-green-500" />
@@ -172,7 +204,7 @@ const ClientTable = ({ clients, onAdd, onEdit, onDelete, onStatusChange, showDat
                       {client.status}
                       <ChevronDown size={12} />
                     </button>
-                    {customMode && statusMenuClientId === client.id && (
+                    {(customMode || allowStatusChange) && statusMenuClientId === client.id && (
                       <div className="absolute left-0 top-full mt-1 bg-card border border-border rounded-lg shadow-lg z-20 min-w-[120px]">
                         {(["Active", "Done"] as const).map((nextStatus) => (
                           <button
@@ -202,14 +234,16 @@ const ClientTable = ({ clients, onAdd, onEdit, onDelete, onStatusChange, showDat
                       <Pencil size={12} />
                       Edit
                     </button>
-                    <button
-                      onClick={() => onDelete(client)}
-                      title={`Delete ${client.full_name}`}
-                      aria-label={`Delete ${client.full_name}`}
-                      className="p-1.5 bg-primary text-primary-foreground rounded-lg hover:opacity-80 transition-opacity"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    {!hideDelete && (
+                      <button
+                        onClick={() => onDelete(client)}
+                        title={`Delete ${client.full_name}`}
+                        aria-label={`Delete ${client.full_name}`}
+                        className="p-1.5 bg-primary text-primary-foreground rounded-lg hover:opacity-80 transition-opacity"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

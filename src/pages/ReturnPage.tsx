@@ -32,6 +32,7 @@ const ReturnPage = () => {
           setClients(clients.map((c) => (c.id === client.id ? { ...c, status } : c)));
         }}
         addButtonLabel="Add Clients"
+        hideDelete={true}
       />
       <AddClientModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSave={handleSave} editClient={editClient} />
     </AppLayout>
