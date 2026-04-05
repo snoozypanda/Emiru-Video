@@ -4,9 +4,12 @@ import ClientTable from "@/components/ClientTable";
 import AddClientModal from "@/components/AddClientModal";
 import { Client, MOCK_CLIENTS } from "@/lib/types";
 
-const PendingPage = () => {
-  const pendingClients = MOCK_CLIENTS.filter((c) => c.paid === 0).map(c => ({ ...c, type: "pending" as const }));
-  const [clients, setClients] = useState<Client[]>(pendingClients);
+const ReturnPage = () => {
+  const returnClients = MOCK_CLIENTS.filter((c) => c.status === "Done").length > 0
+    ? MOCK_CLIENTS.filter((c) => c.status === "Done")
+    : MOCK_CLIENTS.slice(0, 4).map((c) => ({ ...c, status: "Done" as const }));
+
+  const [clients, setClients] = useState<Client[]>(returnClients);
   const [modalOpen, setModalOpen] = useState(false);
   const [editClient, setEditClient] = useState<Client | null>(null);
 
@@ -28,10 +31,11 @@ const PendingPage = () => {
         onStatusChange={(client, status) => {
           setClients(clients.map((c) => (c.id === client.id ? { ...c, status } : c)));
         }}
+        addButtonLabel="Add Clients"
       />
       <AddClientModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSave={handleSave} editClient={editClient} />
     </AppLayout>
   );
 };
 
-export default PendingPage;
+export default ReturnPage;

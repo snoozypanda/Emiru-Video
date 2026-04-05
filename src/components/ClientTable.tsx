@@ -71,24 +71,24 @@ const ClientTable = ({ clients, onAdd, onEdit, onDelete, onStatusChange, showDat
             placeholder="Search"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
-            className="w-full pl-11 pr-4 py-2.5 bg-[#f4f4f4] rounded-md text-sm font-body outline-none placeholder:text-muted-foreground"
+            className="w-full pl-11 pr-4 py-2.5 bg-muted rounded-lg text-sm font-body outline-none placeholder:text-muted-foreground"
           />
         </div>
         <div className="relative">
           <button
             onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-            className="flex items-center justify-between w-[160px] px-4 py-2.5 bg-[#f4f4f4] rounded-md text-sm font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg text-sm font-medium hover:bg-muted transition-colors"
           >
-            {statusFilter === "All" ? "All Statuses" : statusFilter}
-            <ChevronDown size={14} className="text-muted-foreground" />
+            All Statuses
+            <ChevronDown size={14} />
           </button>
           {showFilterDropdown && (
-            <div className="absolute right-0 top-full mt-1 w-full bg-white border border-border rounded-md shadow-lg z-20">
+            <div className="absolute right-0 top-full mt-1 bg-card border border-border rounded-lg shadow-lg z-20 min-w-[140px]">
               {(["All", "Active", "Done"] as const).map((s) => (
                 <button
                   key={s}
                   onClick={() => { setStatusFilter(s); setShowFilterDropdown(false); setCurrentPage(1); }}
-                  className={`block w-full text-left px-4 py-2 text-sm hover:bg-[#f4f4f4] transition-colors ${statusFilter === s ? "font-bold" : ""}`}
+                  className={`block w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors ${statusFilter === s ? "font-bold" : ""}`}
                 >
                   {s === "All" ? "All Statuses" : s}
                 </button>
@@ -96,15 +96,13 @@ const ClientTable = ({ clients, onAdd, onEdit, onDelete, onStatusChange, showDat
             </div>
           )}
         </div>
-        <div>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-[#f4f4f4] rounded-md text-sm font-medium transition-colors">
-            <SlidersHorizontal size={14} className="text-muted-foreground" />
-            Sort By
-          </button>
-        </div>
+        <button className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg text-sm font-medium hover:bg-muted transition-colors">
+          <SlidersHorizontal size={16} />
+          Sort By
+        </button>
         <button
           onClick={onAdd}
-          className="flex items-center justify-center gap-1.5 px-5 py-2.5 bg-primary text-white rounded-md text-sm font-semibold hover:opacity-90 transition-opacity whitespace-nowrap"
+          className="flex items-center gap-1.5 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
         >
           <Plus size={16} />
           {addButtonLabel}
@@ -143,16 +141,7 @@ const ClientTable = ({ clients, onAdd, onEdit, onDelete, onStatusChange, showDat
                 <td className="px-4 py-3.5">
                   <input type="checkbox" aria-label={`Select ${client.full_name}`} title={`Select ${client.full_name}`} className="w-4 h-4 rounded border-border" />
                 </td>
-                <td className="px-4 py-3.5 text-sm">
-                  <div className="flex items-center gap-2">
-                    <span>{client.full_name}</span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium text-white ${
-                      ["bg-red-800", "bg-green-700", "bg-yellow-600", "bg-purple-800"][Number(client.id) % 4]
-                    }`}>
-                      {["VIP", "Family", "Trusted", "Standard"][Number(client.id) % 4]}
-                    </span>
-                  </div>
-                </td>
+                <td className="px-4 py-3.5 text-sm">{client.full_name}</td>
                 <td className="px-4 py-3.5 text-sm">{client.phone_number}</td>
                 <td className="px-4 py-3.5 text-sm">
                   {showDateRange && client.date_end
@@ -170,18 +159,18 @@ const ClientTable = ({ clients, onAdd, onEdit, onDelete, onStatusChange, showDat
                         if (!customMode) return;
                         setStatusMenuClientId((prev) => (prev === client.id ? null : client.id));
                       }}
-                      className={`inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-md border text-xs font-medium transition-colors w-[100px] ${
-                        client.status === "Active" ? "bg-emiru-black text-white border-emiru-black" : "bg-white text-emiru-black border-emiru-black"
-                      } ${!customMode ? "cursor-not-allowed" : "hover:opacity-90"}`}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded border text-xs font-medium transition-colors ${
+                        customMode ? "border-border text-foreground hover:bg-muted" : "border-border text-muted-foreground cursor-not-allowed"
+                      }`}
                       title={customMode ? "Change status" : "Enable Custom Mode to change status"}
                     >
                       {client.status === "Active" ? (
-                        <span className="w-1.5 h-1.5 rounded-full bg-emiru-red" />
+                        <span className="w-2 h-2 rounded-full bg-green-500" />
                       ) : (
-                        <span className="text-green-600 font-bold">✓</span>
+                        <span className="text-green-500">✓</span>
                       )}
-                      <span>{client.status}</span>
-                      <ChevronDown size={14} className={client.status === "Active" ? "text-white/60" : "text-gray-400"} />
+                      {client.status}
+                      <ChevronDown size={12} />
                     </button>
                     {customMode && statusMenuClientId === client.id && (
                       <div className="absolute left-0 top-full mt-1 bg-card border border-border rounded-lg shadow-lg z-20 min-w-[120px]">
@@ -208,15 +197,16 @@ const ClientTable = ({ clients, onAdd, onEdit, onDelete, onStatusChange, showDat
                   <div className="flex items-center justify-end gap-2">
                     <button
                       onClick={() => onEdit(client)}
-                      className="w-8 h-8 flex items-center justify-center bg-foreground text-background rounded-md hover:opacity-80 transition-opacity"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-foreground text-background rounded-lg text-xs font-medium hover:opacity-80 transition-opacity"
                     >
-                      <Pencil size={14} />
+                      <Pencil size={12} />
+                      Edit
                     </button>
                     <button
                       onClick={() => onDelete(client)}
                       title={`Delete ${client.full_name}`}
                       aria-label={`Delete ${client.full_name}`}
-                      className="w-8 h-8 flex items-center justify-center bg-primary text-primary-foreground rounded-md hover:opacity-80 transition-opacity"
+                      className="p-1.5 bg-primary text-primary-foreground rounded-lg hover:opacity-80 transition-opacity"
                     >
                       <Trash2 size={14} />
                     </button>

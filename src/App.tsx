@@ -3,7 +3,8 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import MembersPage from "./pages/MembersPage";
+import BookingPage from "./pages/BookingPage";
+import ReturnPage from "./pages/ReturnPage";
 import PendingPage from "./pages/PendingPage";
 import ScheduledPage from "./pages/ScheduledPage";
 import ProductPage from "./pages/ProductPage";
@@ -13,7 +14,7 @@ import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/LoginPage";
 import AdminPage from "./pages/AdminPage";
 import HistoryPage from "./pages/HistoryPage";
-import BookingPage from "./pages/BookingPage";
+import NewMembersPage from "./pages/NewMembersPage";
 
 const queryClient = new QueryClient();
 
@@ -25,11 +26,13 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/" element={<MembersPage />} />
+          <Route path="/" element={<BookingPage />} />
           <Route path="/booking" element={<BookingPage />} />
-          <Route path="/return" element={<PendingPage />} />
+          <Route path="/return" element={<ReturnPage />} />
+          <Route path="/pending" element={<PendingPage />} />
           <Route path="/scheduled" element={<ScheduledPage />} />
           <Route path="/product" element={<ProductPage />} />
+          <Route path="/members" element={<NewMembersPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/settings" element={<SettingsPage />} />
