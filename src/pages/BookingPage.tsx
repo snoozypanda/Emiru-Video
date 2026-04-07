@@ -47,6 +47,8 @@ const BookingPage = () => {
         addButtonLabel="Add Clients"
         allowStatusChange={true}
         hideDelete={true}
+        showTime={true}
+        showRemainingValue={true}
         dateHeaderLabel="Due Date"
       />
       <AddClientModal

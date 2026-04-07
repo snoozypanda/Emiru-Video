@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Calendar,
   CheckCircle2,
+  ChevronDown,
   Circle,
   Download,
   Minus,
@@ -26,8 +27,10 @@ interface ProductRow {
   quantity: number;
 }
 
-const CATEGORIES = ["Camera/ Lens", "Lighting", "Sound", "Gear"] as const;
+const CATEGORIES = ["Camera/ Lens", "Lighting", "Sound", "Gear", "Mount"] as const;
 type Category = (typeof CATEGORIES)[number];
+
+const PAYMENT_METHODS = ["Awash Bank", "CBE", "TeleBirr", "Dashen Bank", "Abyssinia", "Cash"];
 
 const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = false }: AddClientModalProps) => {
   const [fullName, setFullName] = useState("");
@@ -35,6 +38,10 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
   const [date, setDate] = useState(new Date().toLocaleDateString("en-US"));
   const [dateEnd, setDateEnd] = useState("");
   const [paid, setPaid] = useState("");
+  const [guarantorName, setGuarantorName] = useState("");
+  const [guarantorPhone, setGuarantorPhone] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [showPaymentDropdown, setShowPaymentDropdown] = useState(false);
   const [suggestions, setSuggestions] = useState<Client[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -45,6 +52,7 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
     "Lighting": [],
     "Sound": [],
     "Gear": [],
+    "Mount": [],
   });
   const [customTotal, setCustomTotal] = useState<string | null>(null);
 
@@ -55,6 +63,9 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
       setDate(editClient.date);
       setDateEnd(editClient.date_end || "");
       setPaid(String(editClient.paid || ""));
+      setPaymentMethod(editClient.payment_method || "");
+      setGuarantorName(editClient.guarantor_name || "");
+      setGuarantorPhone(editClient.guarantor_phone || "");
       // Handle legacy clients or set total if exists
       if (editClient.remain + editClient.paid !== 0) {
         setCustomTotal(String(editClient.remain + editClient.paid));
@@ -66,6 +77,7 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
         "Lighting": [],
         "Sound": [],
         "Gear": [],
+        "Mount": [],
       };
 
       editClient.products.forEach((p) => {
@@ -73,6 +85,7 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
         if (productDef?.category === "Camera") distribution["Camera/ Lens"].push(p);
         else if (productDef?.category === "Lighting") distribution["Lighting"].push(p);
         else if (productDef?.category === "Sound") distribution["Sound"].push(p);
+        else if (productDef?.category === "Mount") distribution["Mount"].push(p);
         else distribution["Gear"].push(p);
       });
 
@@ -89,7 +102,11 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
         "Lighting": [],
         "Sound": [],
         "Gear": [],
+        "Mount": [],
       });
+      setPaymentMethod("");
+      setGuarantorName("");
+      setGuarantorPhone("");
     }
   }, [editClient, isOpen]);
 
@@ -166,6 +183,9 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
       remain: Math.max(0, remain),
       status: "Active",
       type: isScheduled ? "scheduled" : "member",
+      payment_method: paymentMethod,
+      guarantor_name: guarantorName,
+      guarantor_phone: guarantorPhone,
     });
     onClose();
   };
@@ -178,7 +198,7 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
       onClick={onClose}
     >
       <div
-        className="bg-white w-full max-w-6xl max-h-[90vh] rounded-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.25)] overflow-hidden border border-black/5"
+        className="bg-white w-full max-w-6xl max-h-[90vh] rounded-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.25)] overflow-y-auto border border-black/5"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex flex-col h-full">
@@ -236,13 +256,33 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
                 </div>
               </div>
 
-              <button
-                onClick={handleSave}
-                className="hidden md:inline-flex h-12 items-center gap-2 rounded-xl bg-black px-6 text-sm font-bold text-white shadow-xl transition hover:translate-y-[1px]"
-              >
-                <Download size={18} />
-                Save Booking
-              </button>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowPaymentDropdown(!showPaymentDropdown)}
+                  className="flex h-12 w-full min-w-[180px] items-center justify-between rounded-xl border border-gray-200 bg-white px-4 text-sm font-bold text-gray-900 outline-none hover:bg-gray-50 transition-colors shadow-sm"
+                >
+                  <span className="truncate">{paymentMethod || "Payment Method"}</span>
+                  <ChevronDown size={18} className={`transition-transform flex-shrink-0 ${showPaymentDropdown ? "rotate-180" : ""}`} />
+                </button>
+                {showPaymentDropdown && (
+                  <div className="absolute top-[110%] right-0 w-full min-w-[180px] rounded-xl border border-border bg-white shadow-2xl z-[120] overflow-hidden">
+                    {PAYMENT_METHODS.map((method) => (
+                      <button
+                        key={method}
+                        type="button"
+                        onClick={() => {
+                          setPaymentMethod(method);
+                          setShowPaymentDropdown(false);
+                        }}
+                        className="flex w-full items-center px-4 py-3 text-sm font-bold text-gray-900 hover:bg-gray-100 transition-colors border-b border-gray-50 last:border-0"
+                      >
+                        {method}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -250,10 +290,14 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
           <div className="flex-1 overflow-y-auto px-8 py-4">
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
               {CATEGORIES.map((category) => {
-                const icon = category === "Camera/ Lens" ? "📷" : category === "Lighting" ? "📢" : category === "Sound" ? "〰️" : "🎥";
+                const icon = category === "Camera/ Lens" ? "📷" : category === "Lighting" ? "📢" : category === "Sound" ? "〰️" : category === "Mount" ? "🔭" : "🎥";
                 const catFilter = category === "Camera/ Lens" ? "Camera" : category;
                 const filteredList = MOCK_PRODUCTS.filter(p => p.category === catFilter);
                 
+                const categoryTotal = categorizedProducts[category].reduce((sum, p) => {
+                  const product = MOCK_PRODUCTS.find((mp) => mp.name === p.product_name);
+                  return sum + (product ? p.quantity * product.price : 0);
+                }, 0);
                 return (
                   <div
                     key={category}
@@ -317,6 +361,11 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
                         <option key={mp.id} value={mp.name} />
                       ))}
                     </datalist>
+
+                    <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase text-white/40 tracking-wider">Kit Total</span>
+                      <span className="text-xs font-black text-primary">{categoryTotal.toLocaleString()} ETB</span>
+                    </div>
                   </div>
                 );
               })}
@@ -325,6 +374,29 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
 
           {/* Bottom bar */}
           <div className="px-8 py-6 bg-muted/10 border-t border-border/50">
+            <div className="grid gap-4 md:grid-cols-4 mb-6">
+              <div className="space-y-1.5 font-bold">
+                 <p className="text-[10px] uppercase text-muted-foreground ml-1">Guarantor Name</p>
+                 <input
+                  type="text"
+                  value={guarantorName}
+                  onChange={(e) => setGuarantorName(e.target.value)}
+                  placeholder="Full name..."
+                  className="h-12 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm font-bold text-gray-900 outline-none ring-2 ring-transparent focus:border-black/20"
+                />
+              </div>
+              <div className="space-y-1.5 font-bold">
+                 <p className="text-[10px] uppercase text-muted-foreground ml-1">Guarantor Phone</p>
+                 <input
+                  type="text"
+                  value={guarantorPhone}
+                  onChange={(e) => setGuarantorPhone(e.target.value)}
+                  placeholder="Phone number..."
+                  className="h-12 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm font-bold text-gray-900 outline-none ring-2 ring-transparent focus:border-black/20"
+                />
+              </div>
+            </div>
+
             <div className="grid gap-4 md:grid-cols-4 items-end">
               <div className="space-y-1.5 font-bold">
                  <p className="text-[10px] uppercase text-muted-foreground ml-1">Auto-Calculated Total</p>

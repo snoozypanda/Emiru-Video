@@ -13,6 +13,7 @@ export interface Client {
   note?: string;
   file_url?: string;
   type: "member" | "pending" | "scheduled";
+  payment_method?: string;
   created_at: string;
 }
 
@@ -95,6 +96,10 @@ export const MOCK_PRODUCTS: Product[] = [
   { id: "36", name: "Sandbag Set", quantity: 25, category: "Gear", price: 40 },
   { id: "37", name: "Gaffer Tape", quantity: 30, category: "Gear", price: 25 },
   { id: "38", name: "SD Card 128GB", quantity: 40, category: "Gear", price: 60 },
+  { id: "39", name: "Manfrotto 504HD", quantity: 5, category: "Mount", price: 150 },
+  { id: "40", name: "Sachtler Flowtech 75", quantity: 3, category: "Mount", price: 500 },
+  { id: "41", name: "EasyRig Minimax", quantity: 2, category: "Mount", price: 600 },
+  { id: "42", name: "Shoulder Rig Kit", quantity: 4, category: "Mount", price: 300 },
 ];
 
 export const MOCK_CLIENTS: Client[] = Array.from({ length: 24 }, (_, i) => ({

@@ -4,20 +4,35 @@ import { Client } from "@/lib/types";
 
 interface ClientTableProps {
   clients: Client[];
-  onAdd: () => void;
+  onAdd?: () => void;
   onEdit: (client: Client) => void;
-  onDelete: (client: Client) => void;
+  onDelete?: (client: Client) => void;
   onStatusChange?: (client: Client, status: Client["status"]) => void;
   showDateRange?: boolean;
   addButtonLabel?: string;
   hideDelete?: boolean;
   allowStatusChange?: boolean;
   dateHeaderLabel?: string;
+  showTime?: boolean;
+  showRemainingValue?: boolean;
 }
 
 const ITEMS_PER_PAGE = 8;
 
-const ClientTable = ({ clients, onAdd, onEdit, onDelete, onStatusChange, showDateRange = false, addButtonLabel = "Add Clients", hideDelete = false, allowStatusChange = false, dateHeaderLabel }: ClientTableProps) => {
+const ClientTable = ({ 
+  clients, 
+  onAdd, 
+  onEdit, 
+  onDelete, 
+  onStatusChange, 
+  showDateRange = false, 
+  addButtonLabel = "Add Clients", 
+  hideDelete = false, 
+  allowStatusChange = false, 
+  dateHeaderLabel,
+  showTime = false,
+  showRemainingValue = false
+}: ClientTableProps) => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"All" | "Active" | "Done">("All");
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
@@ -132,13 +147,15 @@ const ClientTable = ({ clients, onAdd, onEdit, onDelete, onStatusChange, showDat
             </div>
           )}
         </div>
-        <button
-          onClick={onAdd}
-          className="flex items-center gap-1.5 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
-        >
-          <Plus size={16} />
-          {addButtonLabel}
-        </button>
+        {onAdd && (
+          <button
+            onClick={onAdd}
+            className="flex items-center gap-1.5 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
+          >
+            <Plus size={16} />
+            {addButtonLabel}
+          </button>
+        )}
       </div>
 
       {/* Table */}
@@ -159,7 +176,7 @@ const ClientTable = ({ clients, onAdd, onEdit, onDelete, onStatusChange, showDat
                 {(sortBy === "date" && dateHeaderLabel) ? dateHeaderLabel : "Date"} <ChevronDown size={12} className="inline ml-1" />
               </th>
               <th className="text-left px-4 py-3 text-sm font-semibold text-foreground">
-                Paid/ Remain <ChevronDown size={12} className="inline ml-1" />
+                {showRemainingValue ? "Remaining" : "Paid/ Remain"} <ChevronDown size={12} className="inline ml-1" />
               </th>
               <th className="text-left px-4 py-3 text-sm font-semibold text-foreground">
                 Status <ChevronDown size={12} className="inline ml-1" />
@@ -176,12 +193,36 @@ const ClientTable = ({ clients, onAdd, onEdit, onDelete, onStatusChange, showDat
                 <td className="px-4 py-3.5 text-sm">{client.full_name}</td>
                 <td className="px-4 py-3.5 text-sm">{client.phone_number}</td>
                 <td className="px-4 py-3.5 text-sm">
-                  {showDateRange && client.date_end
-                    ? `${client.date} - ${client.date_end}`
-                    : client.date}
+                  {(() => {
+                    let displayDate = client.date;
+                    if (showDateRange && client.date_end) {
+                      displayDate = `${client.date} - ${client.date_end}`;
+                    }
+                    if (showTime && client.created_at) {
+                      const timeStr = new Date(client.created_at).toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      });
+                      return (
+                        <span>
+                          {displayDate} <span className="text-muted-foreground ml-1">| {timeStr}</span>
+                        </span>
+                      );
+                    }
+                    return displayDate;
+                  })()}
                 </td>
                 <td className="px-4 py-3.5 text-sm">
-                  {client.paid > 0 ? client.paid : "—"}
+                  {showRemainingValue 
+                    ? (
+                      <div className="flex flex-col">
+                        <span>{client.remain > 0 ? client.remain.toLocaleString() : "—"}</span>
+                        {client.payment_method && (
+                          <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">{client.payment_method}</span>
+                        )}
+                      </div>
+                    ) 
+                    : (client.paid > 0 ? client.paid.toLocaleString() : "—")}
                 </td>
                 <td className="px-4 py-3.5">
                   <div className="relative inline-block">
@@ -234,7 +275,7 @@ const ClientTable = ({ clients, onAdd, onEdit, onDelete, onStatusChange, showDat
                       <Pencil size={12} />
                       Edit
                     </button>
-                    {!hideDelete && (
+                    {!hideDelete && onDelete && (
                       <button
                         onClick={() => onDelete(client)}
                         title={`Delete ${client.full_name}`}

@@ -81,8 +81,15 @@ const MembersPage = () => {
           return (
             <div key={client.id} className="flex items-center justify-between py-4 px-4 border-b border-border/50 hover:bg-gray-50">
               <div className="flex items-center gap-3">
-                <h3 className="font-bold text-base">{client.full_name}</h3>
-                <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold text-white shadow-sm ${badgeColors}`}>
+                <div className="flex flex-col">
+                  <h3 className="font-bold text-base leading-tight">{client.full_name}</h3>
+                  {client.guarantor_name && (
+                    <span className="text-[10px] text-muted-foreground font-medium">
+                      Guarantor: {client.guarantor_name} {client.guarantor_phone ? `(${client.guarantor_phone})` : ""}
+                    </span>
+                  )}
+                </div>
+                <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold text-white shadow-sm h-fit ${badgeColors}`}>
                   {badgeType}
                 </span>
               </div>

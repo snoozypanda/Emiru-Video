@@ -1,74 +1,110 @@
-# Emiru Video Rentals
+# 🎥 Emiru Video Rentals
 
-Web app for managing video rental clients, products, and schedules. Built with React, TypeScript, Vite, Tailwind CSS, and React Router.
+[![React](https://img.shields.io/badge/React-18.3-61DAFB?style=flat-square&logo=react)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?style=flat-square&logo=vite)](https://vitejs.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
+[![Shadcn UI](https://img.shields.io/badge/UI-Shadcn_UI-000000?style=flat-square&logo=shadcnui)](https://ui.shadcn.com/)
 
-## Prerequisites
+**Emiru Video Rentals** is a high-performance, premium web application designed for managing professional video equipment rentals, client databases, and rental schedules. Built with a modern tech stack focused on speed, type safety, and aesthetic excellence.
 
-- Node.js 18+ (recommended)
-- npm
+---
 
-## Getting started
+## ✨ Key Features
 
-```bash
-cd emiru-video-rentals
-npm install
-npm run dev
-```
+- **🎥 Advanced Inventory Management**: A visual grid-based system for tracking cameras, lighting, and sound gear with intuitive quantity controls.
+- **👥 Comprehensive Client Database**: Searchable and filterable member list with real-time status updates (Active/Done).
+- **⏳ Pending & Scheduled Tracking**: Dedicated modules for managing outstanding balances and future rental bookings.
+- **🎯 Custom Control Mode**: A sidebar-driven toggle that enables advanced administrative actions and status overrides.
+- **💎 Premium Aesthetics**: 
+  - Glassmorphism design elements.
+  - Custom **Host Grotesk** typography.
+  - Branded color palette (Emiru Red & Yellow).
+  - Smooth micro-animations and responsive layouts.
 
-Open the URL shown in the terminal (usually `http://localhost:5173`).
+---
 
-## Build
+## 🛠️ Tech Stack
 
+### Frontend Core
+- **React 18**: Component-based UI architecture.
+- **TypeScript**: Strict type safety for robust development.
+- **Vite**: Ultra-fast build tool and dev server.
+- **React Router 6**: Client-side routing for seamless navigation.
+
+### UI & Styling
+- **Tailwind CSS**: Utility-first CSS framework for rapid UI development.
+- **Shadcn/UI**: High-quality, accessible components built on Radix UI.
+- **Lucide Icons**: Beautiful, consistent icon set.
+- **Recharts**: Data visualization for reporting and analytics.
+
+### State & Utilities
+- **TanStack Query**: Efficient server-state management.
+- **React Hook Form + Zod**: Schema-driven form validation.
+- **Sonner**: Sleek toast notifications for user feedback.
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- **Node.js**: 18.x or higher
+- **npm**: 9.x or higher
+
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone [repository-url]
+   cd emiru-video-rentals
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+Open [http://localhost:5173](http://localhost:5173) in your browser to see the app.
+
+### Build for Production
 ```bash
 npm run build
-npm run preview   # optional: preview production build locally
 ```
+The optimized build will be generated in the `dist/` directory.
 
-## Routes
+---
 
-| Path         | Page        | Notes                                      |
-| ------------ | ----------- | ------------------------------------------ |
-| `/login`     | Login       | Branded glass login; submit goes to `/`    |
-| `/`          | Members     | Client table                               |
-| `/pending`   | Pending     | Clients with `paid === 0`                  |
-| `/scheduled` | Scheduled   | Date range column in table                 |
-| `/product`   | Product     | Inventory grid with quantity controls      |
-| `/settings`  | Settings    |                                            |
-| `/report`    | Report      |                                            |
-| `*`          | Not found   |                                            |
+## 📂 Project Structure
 
-## Login page
-
-- **Component:** `src/pages/LoginPage.tsx`
-- **Assets** (served from `public/`):
-
-  - `public/login/emiru-logo.png` — logo
-  - `public/login/login-bg-camera.png` — full-page background
-
-- **Behavior:** Sign-in submits the form and navigates to `/`. Replace this with real authentication when you connect a backend.
-
-## UI conventions
-
-- **Host Grotesk** is loaded in `src/index.css` and used as the main font (see Tailwind `font-heading` / `font-body`).
-- **Brand colors** use CSS variables such as `--emiru-yellow`, `--emiru-red`, `--emiru-black` (see `src/index.css` and `tailwind.config.ts` under `emiru.*`).
-
-## Notable features
-
-- **Sidebar — Custom mode:** Toggles editing of client **status** in `ClientTable` (dropdown when enabled). Preference is stored in `localStorage` key `emiru-custom-mode`.
-- **Client table:** Search, status filter, pagination, add/edit/delete hooks; optional date range column for scheduled clients.
-- **Product view:** Quantity adjustments with press-and-hold on +/- controls.
-
-## Project structure (high level)
-
-```
+```text
 src/
-  components/     # Shared UI (e.g. ClientTable, layout, modals)
-  pages/          # Route-level screens (LoginPage, MembersPage, …)
-  lib/            # Types and mock data
-public/
-  login/          # Login-specific static images
+├── components/     # Reusable UI components & Layouts
+│   ├── layout/     # AppLayout, Sidebar, Navbar
+│   └── ui/         # Base Shadcn UI components
+├── pages/          # Full-page route components
+├── lib/            # Types, utility functions, and mock data
+├── hooks/          # Custom React hooks
+└── assets/         # Global styles and branding assets
 ```
 
-## License
+---
 
-Private / internal — add your license here if needed.
+## 🎨 Design System
+
+| Element | Specification |
+| :--- | :--- |
+| **Typography** | Host Grotesk (Heading & Body) |
+| **Primary Color** | Emiru Red (#F70A0B) |
+| **Secondary Color** | Emiru Yellow (#FFD91A) |
+| **Theme** | Dark Sidebar / Light Content (Glassmorphism) |
+
+---
+
+## 🛡️ License
+
+This project is for internal/private use. 
+
+---
+Developed with ❤️ by the Emiru Team.
