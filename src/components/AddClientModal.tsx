@@ -3,12 +3,16 @@ import {
   Calendar,
   CheckCircle2,
   ChevronDown,
+  ChevronRight,
   Circle,
   Download,
   Minus,
+  Phone,
   Plus,
   Printer,
   Search,
+  ShieldCheck,
+  User,
   X,
 } from "lucide-react";
 import { Client, MOCK_CLIENTS, MOCK_PRODUCTS } from "@/lib/types";
@@ -19,6 +23,7 @@ interface AddClientModalProps {
   onSave: (data: Partial<Client>) => void;
   editClient?: Client | null;
   isScheduled?: boolean;
+  penaltyOnly?: boolean;
 }
 
 interface ProductRow {
@@ -32,7 +37,7 @@ type Category = (typeof CATEGORIES)[number];
 
 const PAYMENT_METHODS = ["Awash Bank", "CBE", "TeleBirr", "Dashen Bank", "Abyssinia", "Cash"];
 
-const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = false }: AddClientModalProps) => {
+const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = false, penaltyOnly = false }: AddClientModalProps) => {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [date, setDate] = useState(new Date().toLocaleDateString("en-US"));
@@ -41,6 +46,8 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
   const [guarantorName, setGuarantorName] = useState("");
   const [guarantorPhone, setGuarantorPhone] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
+  const [penalty, setPenalty] = useState("");
+  const [showGuarantor, setShowGuarantor] = useState(false);
   const [showPaymentDropdown, setShowPaymentDropdown] = useState(false);
   const [suggestions, setSuggestions] = useState<Client[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -63,6 +70,7 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
       setDate(editClient.date);
       setDateEnd(editClient.date_end || "");
       setPaid(String(editClient.paid || ""));
+      setPenalty(String(editClient.penalty || ""));
       setPaymentMethod(editClient.payment_method || "");
       setGuarantorName(editClient.guarantor_name || "");
       setGuarantorPhone(editClient.guarantor_phone || "");
@@ -96,6 +104,7 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
       setDate(new Date().toLocaleDateString("en-US"));
       setDateEnd("");
       setPaid("");
+      setPenalty("");
       setCustomTotal(null);
       setCategorizedProducts({
         "Camera/ Lens": [{ id: "1", product_name: "", quantity: 1 }],
@@ -184,6 +193,7 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
       status: "Active",
       type: isScheduled ? "scheduled" : "member",
       payment_method: paymentMethod,
+      penalty: Number(penalty) || 0,
       guarantor_name: guarantorName,
       guarantor_phone: guarantorPhone,
     });
@@ -191,6 +201,108 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
   };
 
   if (!isOpen) return null;
+
+  // Penalty-only compact modal for Pending page
+  if (penaltyOnly && editClient) {
+    return (
+      <div
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-8"
+        onClick={onClose}
+      >
+        <div
+          className="bg-white w-full max-w-md rounded-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.25)] overflow-hidden border border-black/5"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="bg-black px-6 py-5 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emiru-yellow/20 flex items-center justify-center">
+                <ShieldCheck size={20} className="text-emiru-yellow" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/50">Edit Penalty</p>
+                <p className="text-sm font-bold text-white">{editClient.full_name}</p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+            >
+              <X size={16} className="text-white/60" />
+            </button>
+          </div>
+
+          {/* Client Info Summary */}
+          <div className="px-6 py-4 border-b border-border/50">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Phone</p>
+                <p className="text-sm font-bold text-gray-900">{editClient.phone_number}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Date</p>
+                <p className="text-sm font-bold text-gray-900">{editClient.date}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Paid</p>
+                <p className="text-sm font-bold text-gray-900">{editClient.paid.toLocaleString()} ETB</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Remaining</p>
+                <p className="text-sm font-bold text-gray-900">{editClient.remain.toLocaleString()} ETB</p>
+              </div>
+            </div>
+            {editClient.products.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-border/30">
+                <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground mb-1.5">Products</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {editClient.products.map((p) => (
+                    <span key={p.id} className="px-2.5 py-1 rounded-full bg-muted text-[11px] font-bold text-gray-700">
+                      {p.quantity}× {p.product_name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Penalty Input */}
+          <div className="px-6 py-5">
+            <div className="rounded-2xl border-2 border-emiru-red/20 bg-emiru-red/5 p-4">
+              <p className="text-[10px] font-black uppercase tracking-widest text-emiru-red mb-2">Penalty Amount (ETB)</p>
+              <input
+                type="number"
+                value={penalty}
+                onChange={(e) => setPenalty(e.target.value)}
+                placeholder="0.00"
+                autoFocus
+                className="w-full text-2xl font-black text-gray-900 bg-transparent outline-none placeholder:text-gray-300"
+              />
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="px-6 pb-6 flex gap-3">
+            <button
+              onClick={onClose}
+              className="flex-1 h-12 rounded-xl border border-gray-200 text-sm font-bold text-gray-600 hover:bg-muted transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                onSave({ penalty: Number(penalty) || 0 });
+                onClose();
+              }}
+              className="flex-1 h-12 rounded-xl bg-black text-white text-sm font-bold shadow-lg transition-transform hover:translate-y-[-1px]"
+            >
+              Update Penalty
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -288,9 +400,9 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
 
           {/* Product columns */}
           <div className="flex-1 overflow-y-auto px-8 py-4">
-            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-4 grid-cols-2 xl:grid-cols-6">
               {CATEGORIES.map((category) => {
-                const icon = category === "Camera/ Lens" ? "📷" : category === "Lighting" ? "📢" : category === "Sound" ? "〰️" : category === "Mount" ? "🔭" : "🎥";
+                const icon = category === "Camera/ Lens" ? "📷" : category === "Lighting" ? "💡" : category === "Sound" ? "🎙️" : category === "Mount" ? "🔭" : "🎥";
                 const catFilter = category === "Camera/ Lens" ? "Camera" : category;
                 const filteredList = MOCK_PRODUCTS.filter(p => p.category === catFilter);
                 
@@ -298,10 +410,14 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
                   const product = MOCK_PRODUCTS.find((mp) => mp.name === p.product_name);
                   return sum + (product ? p.quantity * product.price : 0);
                 }, 0);
+
+                // First 3 categories span 2 cols each (fill row 1), last 2 span 2 cols each (row 2)
+                const spanClass = "xl:col-span-2";
+
                 return (
                   <div
                     key={category}
-                    className="flex flex-col rounded-[24px] bg-black p-4 text-white shadow-2xl h-fit border border-white/5"
+                    className={`flex flex-col rounded-[24px] bg-black p-4 text-white shadow-2xl h-fit border border-white/5 ${spanClass}`}
                   >
                     <div className="mb-4 flex items-center justify-between text-xs font-black uppercase tracking-widest text-white/50">
                       <span>{category}</span>
@@ -369,35 +485,117 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
                   </div>
                 );
               })}
+
+              {/* Order Summary Panel — fills the last 2 cols on row 2 */}
+              {/* <div className="xl:col-span-2 flex flex-col rounded-[24px] border-2 border-dashed border-black/10 bg-gradient-to-br from-muted/30 to-muted/60 p-5 h-fit">
+                <div className="mb-4 flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-black flex items-center justify-center">
+                    <CheckCircle2 size={16} className="text-emiru-yellow" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Order Summary</p>
+                    <p className="text-xs font-bold text-gray-700">{allProductsFlat.filter(p => p.product_name).length} items selected</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  {CATEGORIES.map((cat) => {
+                    const items = categorizedProducts[cat].filter(p => p.product_name);
+                    if (items.length === 0) return null;
+                    const catTotal = items.reduce((sum, p) => {
+                      const product = MOCK_PRODUCTS.find((mp) => mp.name === p.product_name);
+                      return sum + (product ? p.quantity * product.price : 0);
+                    }, 0);
+                    return (
+                      <div key={cat} className="flex items-center justify-between py-2 px-3 rounded-xl bg-white/60 border border-white">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-black" />
+                          <span className="text-[11px] font-bold text-gray-700">{cat}</span>
+                          <span className="text-[10px] text-muted-foreground">({items.length})</span>
+                        </div>
+                        <span className="text-[11px] font-black text-gray-900">{catTotal.toLocaleString()}</span>
+                      </div>
+                    );
+                  })}
+                  {allProductsFlat.filter(p => p.product_name).length === 0 && (
+                    <div className="text-center py-6 text-muted-foreground">
+                      <p className="text-xs font-bold">No items added yet</p>
+                      <p className="text-[10px] mt-1">Add products from the categories</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-4 pt-4 border-t-2 border-black/10 flex items-center justify-between">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-gray-500">Grand Total</span>
+                  <span className="text-lg font-black text-gray-900">{autoCalculatedTotal.toLocaleString()} <span className="text-xs text-muted-foreground">ETB</span></span>
+                </div>
+              </div> */}
             </div>
           </div>
 
           {/* Bottom bar */}
           <div className="px-8 py-6 bg-muted/10 border-t border-border/50">
-            <div className="grid gap-4 md:grid-cols-4 mb-6">
-              <div className="space-y-1.5 font-bold">
-                 <p className="text-[10px] uppercase text-muted-foreground ml-1">Guarantor Name</p>
-                 <input
-                  type="text"
-                  value={guarantorName}
-                  onChange={(e) => setGuarantorName(e.target.value)}
-                  placeholder="Full name..."
-                  className="h-12 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm font-bold text-gray-900 outline-none ring-2 ring-transparent focus:border-black/20"
-                />
-              </div>
-              <div className="space-y-1.5 font-bold">
-                 <p className="text-[10px] uppercase text-muted-foreground ml-1">Guarantor Phone</p>
-                 <input
-                  type="text"
-                  value={guarantorPhone}
-                  onChange={(e) => setGuarantorPhone(e.target.value)}
-                  placeholder="Phone number..."
-                  className="h-12 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm font-bold text-gray-900 outline-none ring-2 ring-transparent focus:border-black/20"
-                />
-              </div>
+            {/* Guarantor Card — collapsible dark card */}
+            <div className="mb-6 rounded-[20px] bg-black border border-white/5 shadow-xl overflow-hidden transition-all duration-300">
+              <button
+                type="button"
+                onClick={() => setShowGuarantor(!showGuarantor)}
+                className="flex w-full items-center justify-between px-5 py-4 text-white hover:bg-white/5 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors duration-300 ${guarantorName || guarantorPhone ? 'bg-emiru-yellow/20' : 'bg-white/10'}`}>
+                    <ShieldCheck size={18} className={`transition-colors duration-300 ${guarantorName || guarantorPhone ? 'text-emiru-yellow' : 'text-white/50'}`} />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-white/50">Guarantor</p>
+                    <p className="text-xs font-bold text-white/80">
+                      {guarantorName ? guarantorName : 'Add guarantor details'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {guarantorName && (
+                    <span className="px-2.5 py-1 rounded-full bg-emiru-yellow/15 text-[10px] font-black text-emiru-yellow uppercase tracking-wider">
+                      Added
+                    </span>
+                  )}
+                  <ChevronRight size={16} className={`text-white/40 transition-transform duration-300 ${showGuarantor ? 'rotate-90' : ''}`} />
+                </div>
+              </button>
+
+              {showGuarantor && (
+                <div className="px-5 pb-5 pt-1 border-t border-white/5">
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div className="group flex items-center gap-2.5 rounded-2xl border border-white/10 bg-white/5 p-1.5 focus-within:border-white/20 transition-all">
+                      <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/10 flex-shrink-0">
+                        <User size={14} className="text-white/40" />
+                      </div>
+                      <input
+                        type="text"
+                        value={guarantorName}
+                        onChange={(e) => setGuarantorName(e.target.value)}
+                        placeholder="Guarantor full name..."
+                        className="flex-1 bg-transparent text-xs font-bold text-white placeholder-white/20 outline-none py-2 pr-3"
+                      />
+                    </div>
+                    <div className="group flex items-center gap-2.5 rounded-2xl border border-white/10 bg-white/5 p-1.5 focus-within:border-white/20 transition-all">
+                      <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/10 flex-shrink-0">
+                        <Phone size={14} className="text-white/40" />
+                      </div>
+                      <input
+                        type="text"
+                        value={guarantorPhone}
+                        onChange={(e) => setGuarantorPhone(e.target.value)}
+                        placeholder="Guarantor phone..."
+                        className="flex-1 bg-transparent text-xs font-bold text-white placeholder-white/20 outline-none py-2 pr-3"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="grid gap-4 md:grid-cols-4 items-end">
+            <div className="grid gap-4 md:grid-cols-5 items-end">
               <div className="space-y-1.5 font-bold">
                  <p className="text-[10px] uppercase text-muted-foreground ml-1">Auto-Calculated Total</p>
                  <div className="h-12 flex items-center rounded-xl border border-border bg-muted/20 px-4 text-xs font-bold text-muted-foreground">
@@ -424,6 +622,16 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
                   className="h-12 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm font-bold text-gray-900 outline-none ring-2 ring-transparent focus:border-black/20"
                 />
               </div>
+               <div className="space-y-1.5 font-bold">
+                  <p className="text-[10px] uppercase text-emiru-red ml-1">Penalty Amount (ETB)</p>
+                  <input
+                   type="number"
+                   value={penalty}
+                   onChange={(e) => setPenalty(e.target.value)}
+                   placeholder="0.00"
+                   className="h-12 w-full rounded-xl border border-emiru-red/30 bg-white px-4 text-sm font-bold text-gray-900 outline-none ring-2 ring-transparent focus:border-emiru-red"
+                 />
+               </div>
               <div className="space-y-1.5 font-bold">
                  <p className="text-[10px] uppercase text-muted-foreground ml-1">Remaining Balance</p>
                  <div className="h-12 flex items-center rounded-xl border border-gray-200 bg-muted/30 px-4 text-sm font-bold text-gray-900">

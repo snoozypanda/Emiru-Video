@@ -39,6 +39,8 @@ const ScheduledPage = () => {
         showDateRange
         addButtonLabel="Add Clients"
         dateHeaderLabel="Due Date"
+        showTime={true}
+        showRemainingValue={true}
       />
       <AddClientModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSave={handleSave} editClient={editClient} isScheduled />
     </AppLayout>

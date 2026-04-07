@@ -14,6 +14,7 @@ export interface Client {
   file_url?: string;
   type: "member" | "pending" | "scheduled";
   payment_method?: string;
+  penalty?: number;
   created_at: string;
 }
 
@@ -111,7 +112,8 @@ export const MOCK_CLIENTS: Client[] = Array.from({ length: 24 }, (_, i) => ({
   paid: [3000, 0, 200, 5078, 0, 1210, 500, 0][i % 8],
   remain: [3000, 0, 200, 5078, 0, 1210, 500, 0][i % 8],
   status: (i === 1 ? "Done" : "Active") as "Active" | "Done",
-  type: "member" as const,
+  penalty: [0, 500, 0, 1000, 0][i % 5],
+  type: (i % 5 === 0 ? "pending" : "member") as "member" | "pending",
   created_at: new Date().toISOString(),
 }));
 

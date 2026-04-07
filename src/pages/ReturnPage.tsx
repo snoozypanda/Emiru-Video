@@ -31,6 +31,8 @@ const ReturnPage = () => {
           setClients(clients.map((c) => (c.id === client.id ? { ...c, status } : c)));
         }}
         hideDelete={true}
+        showTime={true}
+        showRemainingValue={true}
       />
       <AddClientModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSave={handleSave} editClient={editClient} />
     </AppLayout>

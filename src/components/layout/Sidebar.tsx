@@ -10,11 +10,13 @@ import {
   Settings,
   ShieldCheck,
   Users,
+  AlertCircle,
 } from "lucide-react";
 import logoWhite from "@/assets/emiru-logo-white.png";
 
 const navItems = [
   { label: "Booking", icon: CheckSquare, path: "/" },
+  { label: "Pending", icon: AlertCircle, path: "/pending" },
   { label: "Return", icon: RotateCcw, path: "/return" },
   { label: "Scheduled", icon: CalendarDays, path: "/scheduled" },
   { label: "Product", icon: Camera, path: "/product" },

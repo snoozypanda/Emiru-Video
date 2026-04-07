@@ -5,7 +5,9 @@ import AddClientModal from "@/components/AddClientModal";
 import { Client, MOCK_CLIENTS } from "@/lib/types";
 
 const PendingPage = () => {
-  const pendingClients = MOCK_CLIENTS.filter((c) => c.paid === 0).map(c => ({ ...c, type: "pending" as const }));
+  const pendingClients = MOCK_CLIENTS.filter(
+    (c) => c.type === "pending" || (c.penalty && c.penalty > 0)
+  );
   const [clients, setClients] = useState<Client[]>(pendingClients);
   const [modalOpen, setModalOpen] = useState(false);
   const [editClient, setEditClient] = useState<Client | null>(null);
@@ -22,14 +24,25 @@ const PendingPage = () => {
     <AppLayout>
       <ClientTable
         clients={clients}
-        onAdd={() => { setEditClient(null); setModalOpen(true); }}
-        onEdit={(c) => { setEditClient(c); setModalOpen(true); }}
-        onDelete={(c) => { if (window.confirm(`Delete ${c.full_name}?`)) setClients(clients.filter(x => x.id !== c.id)); }}
-        onStatusChange={(client, status) => {
-          setClients(clients.map((c) => (c.id === client.id ? { ...c, status } : c)));
+        onEdit={(client) => {
+          setEditClient(client);
+          setModalOpen(true);
         }}
+        onStatusChange={(client, status) => {
+          setClients(clients.map((current) => (current.id === client.id ? { ...current, status } : current)));
+        }}
+        showPenalty={true}
+        allowStatusChange={true}
+        showTime={true}
+        hideDelete={true}
       />
-      <AddClientModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSave={handleSave} editClient={editClient} />
+      <AddClientModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSave={handleSave}
+        editClient={editClient}
+        penaltyOnly={true}
+      />
     </AppLayout>
   );
 };

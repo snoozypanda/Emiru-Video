@@ -15,6 +15,7 @@ interface ClientTableProps {
   dateHeaderLabel?: string;
   showTime?: boolean;
   showRemainingValue?: boolean;
+  showPenalty?: boolean;
 }
 
 const ITEMS_PER_PAGE = 8;
@@ -31,7 +32,8 @@ const ClientTable = ({
   allowStatusChange = false, 
   dateHeaderLabel,
   showTime = false,
-  showRemainingValue = false
+  showRemainingValue = false,
+  showPenalty = false
 }: ClientTableProps) => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"All" | "Active" | "Done">("All");
@@ -181,6 +183,11 @@ const ClientTable = ({
               <th className="text-left px-4 py-3 text-sm font-semibold text-foreground">
                 Status <ChevronDown size={12} className="inline ml-1" />
               </th>
+              {showPenalty && (
+                <th className="text-left px-4 py-3 text-sm font-semibold text-foreground">
+                  Penalty <ChevronDown size={12} className="inline ml-1" />
+                </th>
+              )}
               <th className="text-right px-4 py-3 text-sm font-semibold text-foreground">Action</th>
             </tr>
           </thead>
@@ -266,6 +273,11 @@ const ClientTable = ({
                     )}
                   </div>
                 </td>
+                {showPenalty && (
+                  <td className="px-4 py-3.5 text-sm font-bold text-emiru-red">
+                    {client.penalty && client.penalty > 0 ? `${client.penalty.toLocaleString()} ETB` : "—"}
+                  </td>
+                )}
                 <td className="px-4 py-3.5">
                   <div className="flex items-center justify-end gap-2">
                     <button
