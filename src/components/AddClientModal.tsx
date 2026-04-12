@@ -398,9 +398,9 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
             </div>
           </div>
 
-          {/* Product columns */}
-          <div className="flex-1 overflow-y-auto px-8 py-4">
-            <div className="grid gap-4 grid-cols-2 xl:grid-cols-6">
+          {/* Product columns — horizontal scroll */}
+          <div className="flex-1 overflow-hidden px-8 py-4">
+            <div className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory" style={{ scrollbarWidth: 'thin' }}>
               {CATEGORIES.map((category) => {
                 const icon = category === "Camera/ Lens" ? "📷" : category === "Lighting" ? "💡" : category === "Sound" ? "🎙️" : category === "Mount" ? "🔭" : "🎥";
                 const catFilter = category === "Camera/ Lens" ? "Camera" : category;
@@ -411,54 +411,63 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
                   return sum + (product ? p.quantity * product.price : 0);
                 }, 0);
 
-                // First 3 categories span 2 cols each (fill row 1), last 2 span 2 cols each (row 2)
-                const spanClass = "xl:col-span-2";
+                const itemCount = categorizedProducts[category].length;
 
                 return (
                   <div
                     key={category}
-                    className={`flex flex-col rounded-[24px] bg-black p-4 text-white shadow-2xl h-fit border border-white/5 ${spanClass}`}
+                    className="flex flex-col rounded-[24px] bg-black p-4 text-white shadow-2xl border border-white/5 snap-start flex-shrink-0"
+                    style={{ minWidth: '220px', width: 'calc((100% - 64px) / 5)' }}
                   >
-                    <div className="mb-4 flex items-center justify-between text-xs font-black uppercase tracking-widest text-white/50">
-                      <span>{category}</span>
-                      <span className="text-lg opacity-100">{icon}</span>
+                    {/* Category Header */}
+                    <div className="mb-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{icon}</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-white/50">{category}</span>
+                      </div>
+                      {itemCount > 0 && (
+                        <span className="px-2 py-0.5 rounded-full bg-primary/20 text-[9px] font-black text-primary">
+                          {itemCount}
+                        </span>
+                      )}
                     </div>
 
-                    <div className="space-y-2.5">
+                    {/* Items */}
+                    <div className="space-y-2 flex-1 overflow-y-auto max-h-[200px]" style={{ scrollbarWidth: 'thin' }}>
                       {categorizedProducts[category].map((item) => (
                         <div
                           key={item.id}
-                          className="group flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 p-1.5 focus-within:border-white/20 transition-all"
+                          className="group flex items-center gap-1.5 rounded-2xl border border-white/10 bg-white/5 p-1.5 focus-within:border-white/20 transition-all hover:bg-white/8"
                         >
-                          <div className="flex items-center gap-1 rounded-xl bg-white/10 p-1">
+                          <div className="flex items-center gap-0.5 rounded-xl bg-white/10 p-0.5">
                             <button
                               type="button"
                               onClick={() => incrementQuantity(category, item.id, -1)}
-                              className="w-6 h-6 flex items-center justify-center text-white/40 hover:text-white"
+                              className="w-5 h-5 flex items-center justify-center text-white/40 hover:text-white transition-colors"
                             >
-                              <Minus size={12} />
+                              <Minus size={10} />
                             </button>
                             <span className="w-4 text-center text-[10px] font-black">{item.quantity}</span>
                             <button
                               type="button"
                               onClick={() => incrementQuantity(category, item.id, 1)}
-                              className="w-6 h-6 flex items-center justify-center text-white/40 hover:text-white"
+                              className="w-5 h-5 flex items-center justify-center text-white/40 hover:text-white transition-colors"
                             >
-                              <Plus size={12} />
+                              <Plus size={10} />
                             </button>
                           </div>
                           <input
                             list={`options-${category}`}
                             value={item.product_name}
                             onChange={(e) => updateItem(category, item.id, "product_name", e.target.value)}
-                            placeholder="Select item..."
-                            className="flex-1 bg-transparent pl-2 text-xs font-bold text-white placeholder-white/20 outline-none"
+                            placeholder="Select..."
+                            className="flex-1 min-w-0 bg-transparent pl-1.5 text-[11px] font-bold text-white placeholder-white/20 outline-none"
                           />
                           <button
                             onClick={() => removeItem(category, item.id)}
-                            className="w-7 h-7 flex items-center justify-center text-white/20 hover:text-red-500 rounded-lg hover:bg-red-500/10 transition-colors"
+                            className="w-6 h-6 flex items-center justify-center text-white/20 hover:text-red-500 rounded-lg hover:bg-red-500/10 transition-colors flex-shrink-0"
                           >
-                            <X size={14} />
+                            <X size={12} />
                           </button>
                         </div>
                       ))}
@@ -466,9 +475,9 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
 
                     <button
                       onClick={() => addItem(category)}
-                      className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-white/20 py-3 text-[10px] font-black uppercase tracking-widest text-white/40 hover:bg-primary/10 hover:border-primary/50 hover:text-white transition-all group/add"
+                      className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-white/15 py-2 text-[9px] font-black uppercase tracking-widest text-white/35 hover:bg-primary/10 hover:border-primary/50 hover:text-white transition-all group/add"
                     >
-                      <Plus size={14} className="group-hover/add:scale-110 transition-transform" />
+                      <Plus size={12} className="group-hover/add:scale-110 transition-transform" />
                       Add item
                     </button>
 
@@ -478,58 +487,13 @@ const AddClientModal = ({ isOpen, onClose, onSave, editClient, isScheduled = fal
                       ))}
                     </datalist>
 
-                    <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between">
-                      <span className="text-[10px] font-black uppercase text-white/40 tracking-wider">Kit Total</span>
-                      <span className="text-xs font-black text-primary">{categoryTotal.toLocaleString()} ETB</span>
+                    <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between">
+                      <span className="text-[9px] font-black uppercase text-white/40 tracking-wider">Total</span>
+                      <span className="text-[11px] font-black text-primary">{categoryTotal.toLocaleString()} ETB</span>
                     </div>
                   </div>
                 );
               })}
-
-              {/* Order Summary Panel — fills the last 2 cols on row 2 */}
-              {/* <div className="xl:col-span-2 flex flex-col rounded-[24px] border-2 border-dashed border-black/10 bg-gradient-to-br from-muted/30 to-muted/60 p-5 h-fit">
-                <div className="mb-4 flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-black flex items-center justify-center">
-                    <CheckCircle2 size={16} className="text-emiru-yellow" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Order Summary</p>
-                    <p className="text-xs font-bold text-gray-700">{allProductsFlat.filter(p => p.product_name).length} items selected</p>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  {CATEGORIES.map((cat) => {
-                    const items = categorizedProducts[cat].filter(p => p.product_name);
-                    if (items.length === 0) return null;
-                    const catTotal = items.reduce((sum, p) => {
-                      const product = MOCK_PRODUCTS.find((mp) => mp.name === p.product_name);
-                      return sum + (product ? p.quantity * product.price : 0);
-                    }, 0);
-                    return (
-                      <div key={cat} className="flex items-center justify-between py-2 px-3 rounded-xl bg-white/60 border border-white">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-black" />
-                          <span className="text-[11px] font-bold text-gray-700">{cat}</span>
-                          <span className="text-[10px] text-muted-foreground">({items.length})</span>
-                        </div>
-                        <span className="text-[11px] font-black text-gray-900">{catTotal.toLocaleString()}</span>
-                      </div>
-                    );
-                  })}
-                  {allProductsFlat.filter(p => p.product_name).length === 0 && (
-                    <div className="text-center py-6 text-muted-foreground">
-                      <p className="text-xs font-bold">No items added yet</p>
-                      <p className="text-[10px] mt-1">Add products from the categories</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="mt-4 pt-4 border-t-2 border-black/10 flex items-center justify-between">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-gray-500">Grand Total</span>
-                  <span className="text-lg font-black text-gray-900">{autoCalculatedTotal.toLocaleString()} <span className="text-xs text-muted-foreground">ETB</span></span>
-                </div>
-              </div> */}
             </div>
           </div>
 
